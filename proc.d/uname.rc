@@ -1,0 +1,4 @@
+UNAME=`uname | tr "A-Z" "a-z"
+if [ -f $HOME/$UNAME ]; then
+   . $HOME/$UNAME
+fi

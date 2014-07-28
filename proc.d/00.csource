@@ -1,0 +1,12 @@
+csource()
+{
+   if [ -e $1 ]; then
+      . $1
+   fi
+}
+
+resource()
+{
+   $EDITOR ~/$1
+   csource ~/$1
+}

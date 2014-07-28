@@ -1,0 +1,2 @@
+csource $HOME/.environment
+alias environment="resource $HOME/.environment"

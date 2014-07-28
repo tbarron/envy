@@ -1,0 +1,2 @@
+csource $HOME/.aliases
+alias aliases="resource $HOME/.aliases"

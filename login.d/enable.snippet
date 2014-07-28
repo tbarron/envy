@@ -1,0 +1,8 @@
+LOGIN_D=$HOME/.nv/.login.d
+if [ -d $LOGIN_D ]; then
+    for x in $LOGIN_D/* ; do
+        test -f "$x" || continue
+        test -x "$x" || continue
+        . "$x"
+    done
+fi

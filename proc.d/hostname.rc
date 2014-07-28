@@ -1,0 +1,4 @@
+HOST=`hostname -s`
+if [ -f $HOME/$HOST ]; then
+   . $HOME/$HOST
+fi
