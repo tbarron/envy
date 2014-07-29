@@ -1,0 +1,4 @@
+#!@! source $HOME/.bashrc
+[[ $DEBUG ]] && echo $FILE
+. $HOME/.bashrc
+

@@ -1,0 +1,3 @@
+#!@! intialize ruby stuff
+[[ $DEBUG ]] && echo $FILE
+[[ -s "/Users/tbarron/.rvm/scripts/rvm" ]] && source "/Users/tbarron/.rvm/scripts/rvm"
