@@ -1,3 +1,0 @@
-unset DEBUG
-# export DEBUG=true
-# echo "$DIR: $FILE (DEBUG='$DEBUG')"

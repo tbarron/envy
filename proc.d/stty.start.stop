@@ -1,2 +1,3 @@
-[[ $DEBUG ]] && echo "$DIR: $FILE"
+#!@! set terminal start and stop chars to something innocuous
+[[ $DEBUG ]] && echo "$FILE"
 stty start  stop 

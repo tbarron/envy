@@ -1,2 +1,3 @@
-[[ $DEBUG ]] && echo "$DIR: $FILE"
+#!@! set up a tomcat environment
+[[ $DEBUG ]] && echo "$FILE"
 . $HOME/etc/tomcat_env

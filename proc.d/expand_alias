@@ -1,3 +1,4 @@
+#!@! generate a list of aliases
 [[ $DEBUG ]] && echo "$DIR: $FILE"
 # ---------------------------------------------------------------------------
 # expand 'alias beaker%="ssh beaker%.ccs.ornl.gov" -i33:44' to a series
