@@ -3,6 +3,7 @@ import glob
 import optparse
 import os
 import pdb
+import stat
 import sys
 
 # -----------------------------------------------------------------------------
@@ -369,7 +370,7 @@ def home():
 # -----------------------------------------------------------------------------
 def mode(path):
     s = os.stat(path)
-    return s[stat.st_mode]
+    return s[stat.ST_MODE]
 
 
 # -----------------------------------------------------------------------------
