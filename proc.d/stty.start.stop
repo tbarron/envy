@@ -1,0 +1,2 @@
+[[ $DEBUG ]] && echo "$DIR: $FILE"
+stty start  stop 

@@ -1,6 +1,9 @@
 #!@! source $HOME/.<osname> if it exists
 [[ $DEBUG ]] && echo $FILE
-UNAME=`uname | tr "A-Z" "a-z"
+UNAME=".`uname | tr "A-Z" "a-z"`"
 if [ -f $HOME/$UNAME ]; then
+   echo "uname.rc: sourcing $HOME/$UNAME"
    . $HOME/$UNAME
+else
+   echo "uname.rc: $HOME/$UNAME does not exist"
 fi
