@@ -1,4 +1,5 @@
 #!@! conditionally source or edit and re-source a file
+[[ $DEBUG ]] && echo $FILE
 csource()
 {
    if [ -e $1 ]; then

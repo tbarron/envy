@@ -1,4 +1,5 @@
 #!@! source $HOME/.<osname> if it exists
+[[ $DEBUG ]] && echo $FILE
 UNAME=`uname | tr "A-Z" "a-z"
 if [ -f $HOME/$UNAME ]; then
    . $HOME/$UNAME

@@ -326,14 +326,16 @@ def description(fpath):
 def disable(which, snip):
     (dname, tname, sname) = porl(which)
     snippath = os.path.join(dname, snip)
-    os.chmod(snippath, mode(snippath) & 0644)
+    if os.path.exists(snippath):
+        os.chmod(snippath, mode(snippath) & 0644)
 
     
 # -----------------------------------------------------------------------------
 def enable(which, snip):
     (dname, tname, sname) = porl(which)
     snippath = os.path.join(dname, snip)
-    os.chmod(snippath, mode(snippath) | 0111)
+    if os.path.exists(snippath):
+        os.chmod(snippath, mode(snippath) | 0111)
 
     
 # -----------------------------------------------------------------------------
@@ -386,8 +388,11 @@ def porl(which):
         sname = os.path.join(dname, "enable.snippet")
     elif which == 'l':
         dname = os.path.join(home(), ".nv", "login.d")
-        tname = os.path.join(home(), ".profile")
         sname = os.path.join(dname, "enable.snippet")
+        for tname in [os.path.join(home(), ".profile"),
+                      os.path.join(home(), ".bash_profile")]:
+            if os.path.exists(tname):
+                break
     else:
         fatal("directory must be 'p' or 'l'")
     return(dname, tname, sname)

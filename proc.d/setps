@@ -1,4 +1,5 @@
 #!@! set up cd, pd, and the promp setting machinery
+[[ $DEBUG ]] && echo $FILE
 custom_cd()
 {
     'pushd' $* > /dev/null;

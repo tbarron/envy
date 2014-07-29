@@ -1,9 +1,9 @@
 # added by envy. please do not edit anything from here down
 PROC_D=$HOME/.nv/proc.d
 if [ -d $PROC_D ]; then
-    for x in $PROC_D/* ; do
-        test -f "$x" || continue
-        test -x "$x" || continue
-        . "$x"
+    for FILE in $PROC_D/* ; do
+        test -f "$FILE" || continue
+        test -x "$FILE" || continue
+        . "$FILE"
     done
 fi
