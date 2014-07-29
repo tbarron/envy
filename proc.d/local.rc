@@ -1,3 +1,4 @@
+#!@! run $HOME/.local if it exists
 if [ -f $HOME/.local ]; then
    . $HOME/.local
 fi

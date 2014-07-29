@@ -1,4 +1,5 @@
-HOST=`hostname -s`
+#!@! run $HOME/.$HOST if it exists
+HOST=".`hostname -s`"
 if [ -f $HOME/$HOST ]; then
    . $HOME/$HOST
 fi

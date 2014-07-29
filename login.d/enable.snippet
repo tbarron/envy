@@ -1,4 +1,5 @@
-LOGIN_D=$HOME/.nv/.login.d
+# added by envy. please do not edit the lines below
+LOGIN_D=$HOME/.nv/login.d
 if [ -d $LOGIN_D ]; then
     for x in $LOGIN_D/* ; do
         test -f "$x" || continue
@@ -6,3 +7,4 @@ if [ -d $LOGIN_D ]; then
         . "$x"
     done
 fi
+# added by envy. please do not edit the lines above

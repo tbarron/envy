@@ -1,3 +1,4 @@
+#!@! set up cd, pd, and the promp setting machinery
 custom_cd()
 {
     'pushd' $* > /dev/null;

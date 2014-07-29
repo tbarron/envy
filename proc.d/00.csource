@@ -1,3 +1,4 @@
+#!@! conditionally source or edit and re-source a file
 csource()
 {
    if [ -e $1 ]; then
