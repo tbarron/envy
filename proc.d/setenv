@@ -1,2 +1,3 @@
+[[ $DEBUG ]] && echo "$DIR: $FILE"
 csource $HOME/.environment
 alias environment="resource $HOME/.environment"

@@ -1,3 +1,4 @@
+[[ $DEBUG ]] && echo "$DIR: $FILE"
 if [ -f $HOME/.local ]; then
    . $HOME/.local
 fi

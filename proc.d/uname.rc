@@ -1,4 +1,8 @@
-UNAME=`uname | tr "A-Z" "a-z"
+[[ $DEBUG ]] && echo "$DIR: $FILE"
+UNAME=".`uname | tr "A-Z" "a-z"`"
 if [ -f $HOME/$UNAME ]; then
+   echo "uname.rc: sourcing $HOME/$UNAME"
    . $HOME/$UNAME
+else
+   echo "uname.rc: $HOME/$UNAME does not exist"
 fi

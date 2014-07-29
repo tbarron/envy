@@ -1,0 +1,18 @@
+[[ $DEBUG ]] && echo "$DIR: $FILE"
+# ---------------------------------------------------------------------------
+# expand 'alias beaker%="ssh beaker%.ccs.ornl.gov" -i33:44' to a series
+# of alias commands like 'alias beaker33="ssh beaker33.ccs.ornl.gov"'
+#
+expand_alias()
+{  
+   TMP=$1   # eg., 'alias b%="ssh b%.ccs.ornl.gov"'
+   LO=$2    # numeric
+   HI=$3    # numeric
+
+   for ((I=LO ; I <= HI ; I++))
+   do
+      RESULT=`echo $TMP | sed -e s/%/$I/g`
+      RESULT="alias $RESULT"
+      eval $RESULT
+   done
+}

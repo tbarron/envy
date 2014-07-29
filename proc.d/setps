@@ -1,9 +1,28 @@
+[[ $DEBUG ]] && echo "$DIR: $FILE"
+# ---------------------------------------------------------------------------
+# Remember where we were, go to the next place, and update the prompt
+#
 custom_cd()
 {
-    'pushd' $* > /dev/null;
+    export DIRSTK="`pwd`:${DIRSTK}"
+    'cd' $1
     setps
 }
 
+# ---------------------------------------------------------------------------
+# pop a directory from $DIRSTK and cd to it
+#
+pd()
+{
+   POP=`expr "$DIRSTK" : "\([^:]*\):.*"`
+   export DIRSTK=`expr "$DIRSTK" : "[^:]*:\(.*\)"`
+   'cd' $POP
+   setps
+}
+
+# ---------------------------------------------------------------------------
+# set the prompt
+#
 setps()
 {
    PUSER=${LOGNAME:-$USER}

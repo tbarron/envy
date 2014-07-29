@@ -1,3 +1,4 @@
+[[ $DEBUG ]] && echo "$DIR: $FILE"
 csource()
 {
    if [ -e $1 ]; then

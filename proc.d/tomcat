@@ -1,0 +1,2 @@
+[[ $DEBUG ]] && echo "$DIR: $FILE"
+. $HOME/etc/tomcat_env
