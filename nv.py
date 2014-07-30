@@ -183,10 +183,13 @@ def nv_enable(args):
 
 
 # -----------------------------------------------------------------------------
-def nv_link(args):
-    """link - make a link from dir or file to this program
+def nv_setup(args):
+    """setup - make a link from dir or file to this program
 
-    usage: nv.py link [$HOME/bin|/somewhere/nosuch]
+    usage: nv.py setup [$HOME/bin|/somewhere/nosuch]
+
+    Also, copy 00.debug.sample to login.d/00.debug if login.d/00.debug does not
+    exist.
     """
     p = optparse.OptionParser()
     p.add_option('-d', '--debug',
@@ -209,6 +212,12 @@ def nv_link(args):
         os.symlink(this, target)
     else:
         fatal("Argument must be a directory or non-existent file")
+
+    nvroot = os.path.dirname(__file__)
+    debug_sample = os.path.join(nvroot, "00.debug.sample")
+    debug = os.path.join(nvroot, "login.d", "00.debug")
+    if not os.path.exists(debug):
+        shutil.copy(debug_sample, debug)
 
 
 # -----------------------------------------------------------------------------
