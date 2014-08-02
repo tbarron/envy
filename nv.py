@@ -3,6 +3,7 @@ import glob
 import optparse
 import os
 import pdb
+import shutil
 import stat
 import sys
 
