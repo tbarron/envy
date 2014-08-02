@@ -1,5 +1,4 @@
-envy
-====
+# envy
 
 Manage shell environment across platforms and accounts
 
@@ -47,56 +46,53 @@ here down" must be in tact for this to work).
      nv deactivate           # remove from both
 
 
-Details
--------
+## Details
 
 $NV/nv.py setup <dir>
 
-    Create link <dir>/nv -> $NV/nv.py so you can issue nv
-    commands by simply typing, for example, 'nv help'. <dir> should be
-    in your $PATH.
+> Create link <dir>/nv -> $NV/nv.py so you can issue nv commands by
+> simply typing, for example, 'nv help'. <dir> should be in your
+> $PATH.
 
 nv help
 
-    List the available functions in the nv program.
+> List the available functions in the nv program.
 
 nv status
 
-    Report whether envy has been activated in your .bashrc and
-    .bash_profile.
+> Report whether envy has been activated in your .bashrc and
+> .bash_profile.
 
 nv activate [-D {l|p}]
 
-    Add a snippet to the bottom of .bashrc (-D p) and/or .bash_profile
-    (-D l) which will iterate through the files in $NV/proc.d
-    and $NV/login.d respectively and source the ones with the
-    execute bit.
+> Add a snippet to the bottom of .bashrc (-D p) and/or .bash_profile
+> (-D l) which will iterate through the files in $NV/proc.d and
+> $NV/login.d respectively and source the ones with the execute bit.
 
 nv deactivate [-D {l|p}]
 
-    Remove the activation snippet from .bashrc (-D p) and/or
-    .bash_profile (-D l). This depends on the envy signature line
-    being intact. Everything from the signature line to the bottom of
-    the file is removed.
+> Remove the activation snippet from .bashrc (-D p) and/or
+> .bash_profile (-D l). This depends on the envy signature line
+> being intact. Everything from the signature line to the bottom of
+> the file is removed.
 
 nv list
 
-    List the files in $NV/{proc,login}.d, reporting which have
-    the execute bit (and will therefore be sourced at shell startup or
-    login, respectively, and showing the one line description of what
-    each file does (see 'File Descriptions' below).
+> List the files in $NV/{proc,login}.d, reporting which have the
+> execute bit (and will therefore be sourced at shell startup or
+> login, respectively, and showing the one line description of what
+> each file does (see 'File Descriptions' below).
 
 nv disable
 
-    Turn off the execute bit for specific files in $NV/{proc,login}.d.
+> Turn off the execute bit for specific files in $NV/{proc,login}.d.
 
 nv enable
 
-    Turn on the execute bit for specific files in $NV/{proc,login}.d.
+> Turn on the execute bit for specific files in $NV/{proc,login}.d.
 
 
-File Descriptions
-~~~~~~~~~~~~~~~~~
+=== File Descriptions
 
 If a line like the following appears in a file in
 $NV/{proc,login}.d:
@@ -107,10 +103,37 @@ everything on the line after "#!@!" will be used as a description of
 the file by 'nv list'.
 
 
-Debugging
-~~~~~~~~~
+=== Debugging
 
 Copy $NV/00.debug.sample to $NV/login.d/00.debug, enable it, and
 you'll see which files get sourced at shell startup or login.
 Debugging can be turned on and off by editing $NV/login.d/00.debug or
 by removing and recopying $NV/00.debug.sample when it's wanted.
+
+
+=== Development
+
+The github repo contains several branches for this project. The master
+branch is what should be downloaded and installed on a new account.
+Then, a new branch is created for the account and pushed to github.
+Development and testing should be done either in a feature branch or
+on the devel branch. Once the new version is ready, devel can be
+merged to master.
+
+Changes made to an account branch may or may not be desirable in devel
+and, eventually, master. So here are the ways things can happen.
+
+==== Changes made in an account branch
+
+If we want this change in the main version, the change should be
+merged to devel, tested, and when ready, merged to master.
+
+==== Features
+
+To add a new feature, we'll create a branch off master, work on the
+feature there until it's ready, merge the feature branch to devel,
+then eventually merge devel to master.
+
+Changes can be merged from devel or master to account branches as
+desired.
+
