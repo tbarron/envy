@@ -196,29 +196,86 @@ def nv_setup(args):
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
+    p.add_option('-f', '--force',
+                 action='store_true', default=False, dest='force',
+                 help="overwrite existing symlink")
+    p.add_option('-l', '--linkname',
+                 action='store', default="", dest='linkname',
+                 help="alternate name for 'nv'")
     (o, a) = p.parse_args(args)
 
     if o.debug:
         pdb.set_trace()
 
     try:
-        target = a[0]
+        linksrc = a[0]
     except IndexError:
-        fatal("Target directory or file is required")
+        fatal("Link directory or file is required")
 
-    this = os.path.abspath(__file__)
-    if os.path.isdir(target):
-        os.symlink(this, os.path.join(target, "nv"))
-    elif os.path.exists(target):
-        os.symlink(this, target)
-    else:
-        fatal("Argument must be a directory or non-existent file")
+    msg = setup_link(linksrc, os.path.abspath(__file__), o.force)
+    if msg != '':
+        fatal(msg)
 
+    # copy $NV/00.debug.sample $NV/login.d/00.debug
     nvroot = os.path.dirname(__file__)
     debug_sample = os.path.join(nvroot, "00.debug.sample")
     debug = os.path.join(nvroot, "login.d", "00.debug")
     if not os.path.exists(debug):
         shutil.copy(debug_sample, debug)
+
+
+# -----------------------------------------------------------------------------
+def setup_link(linksrc, dstpath, force):
+    rval = ""
+    if not os.path.exists(linksrc):
+        os.symlink(dstpath, linksrc)
+    elif os.path.islink(linksrc):
+        if os.path.isdir(linksrc):
+            rval = setup_link_indir(linksrc, dstpath, force)
+        elif os.readlink(linksrc) == dstpath:
+            rval = "%s -> %s already" % (linksrc, dstpath)
+        elif force:
+            os.unlink(linksrc)
+            os.symlink(dstpath, linksrc)
+        else:
+            rval = ("%s -> %s; remove %s or use --force" %
+                    (linksrc, os.readlink(linksrc), linksrc))
+    elif os.path.isdir(linksrc):
+        rval = setup_link_indir(linksrc, dstpath, force)
+    else:
+        rval = ("%s is not a link or directory;" % linksrc +
+                " rename it or use --linkname")
+    return rval
+
+
+# -----------------------------------------------------------------------------
+def setup_link_indir(linksrc, dstpath, force):
+    rval = ""
+    linknv = os.path.join(linksrc, "nv")
+    if not os.path.exists(linknv):
+        os.symlink(dstpath, linknv)
+    elif os.path.isfile(linknv) or os.path.isdir(linknv):
+        if force:
+            os.rename(linknv, linknv + ".original")
+            os.symlink(dstpath, linknv)
+        else:
+            rval = ("%s is a file or directory; rename it or use --force" %
+                    linknv)
+    elif os.path.islink(linknv):
+        if os.readlink(linknv) == dstpath:
+            rval = ("%s -> %s already" % (linknv, dstpath))
+        elif force:
+            os.rename(linknv, linknv + ".original")
+            os.symlink(dstpath, linknv)
+        else:
+            rval = ("%s is a link to %s; rename it or use --force" %
+                    (linknv, os.readlink(linknv)))
+    elif force:
+        os.rename(linknv, linknv + ".original")
+        os.symlink(dstpath, linknv)
+    else:
+        rval = ("%s exists; rename it or use --force" % linknv)
+    return rval
 
 
 # -----------------------------------------------------------------------------
