@@ -225,60 +225,6 @@ def nv_setup(args):
 
 
 # -----------------------------------------------------------------------------
-def setup_link(linksrc, dstpath, force):
-    rval = ""
-    if not os.path.exists(linksrc):
-        os.symlink(dstpath, linksrc)
-    elif os.path.islink(linksrc):
-        if os.path.isdir(linksrc):
-            rval = setup_link_indir(linksrc, dstpath, force)
-        elif os.readlink(linksrc) == dstpath:
-            rval = "%s -> %s already" % (linksrc, dstpath)
-        elif force:
-            os.unlink(linksrc)
-            os.symlink(dstpath, linksrc)
-        else:
-            rval = ("%s -> %s; remove %s or use --force" %
-                    (linksrc, os.readlink(linksrc), linksrc))
-    elif os.path.isdir(linksrc):
-        rval = setup_link_indir(linksrc, dstpath, force)
-    else:
-        rval = ("%s is not a link or directory;" % linksrc +
-                " rename it or use --linkname")
-    return rval
-
-
-# -----------------------------------------------------------------------------
-def setup_link_indir(linksrc, dstpath, force):
-    rval = ""
-    linknv = os.path.join(linksrc, "nv")
-    if not os.path.exists(linknv):
-        os.symlink(dstpath, linknv)
-    elif os.path.isfile(linknv) or os.path.isdir(linknv):
-        if force:
-            os.rename(linknv, linknv + ".original")
-            os.symlink(dstpath, linknv)
-        else:
-            rval = ("%s is a file or directory; rename it or use --force" %
-                    linknv)
-    elif os.path.islink(linknv):
-        if os.readlink(linknv) == dstpath:
-            rval = ("%s -> %s already" % (linknv, dstpath))
-        elif force:
-            os.rename(linknv, linknv + ".original")
-            os.symlink(dstpath, linknv)
-        else:
-            rval = ("%s is a link to %s; rename it or use --force" %
-                    (linknv, os.readlink(linknv)))
-    elif force:
-        os.rename(linknv, linknv + ".original")
-        os.symlink(dstpath, linknv)
-    else:
-        rval = ("%s exists; rename it or use --force" % linknv)
-    return rval
-
-
-# -----------------------------------------------------------------------------
 def nv_list(args):
     """list - list the snips that can be turned on or off
 
@@ -410,10 +356,7 @@ def fatal(msg):
     """
     Print an error message and exit
     """
-    print("")
-    print("   %s" % msg)
-    print("")
-    sys.exit(1)
+    raise SystemExit("\n%s\n" % msg)
 
 
 # -----------------------------------------------------------------------------
@@ -463,6 +406,70 @@ def porl(which):
     else:
         fatal("directory must be 'p' or 'l'")
     return(dname, tname, sname)
+
+
+# -----------------------------------------------------------------------------
+def setup_link(linksrc, dstpath, force):
+    rval = ""
+    if os.path.islink(linksrc):
+        if os.path.isdir(linksrc):
+            rval = setup_link_indir(linksrc, dstpath, force)
+        elif os.readlink(linksrc) == dstpath:
+            rval = "%s -> %s already" % (linksrc, dstpath)
+        elif force:
+            os.rename(linksrc, linksrc + ".original")
+            os.symlink(dstpath, linksrc)
+        else:
+            rval = ("%s -> %s; remove %s or use --force" %
+                    (linksrc, os.readlink(linksrc), linksrc))
+    elif os.path.isdir(linksrc):
+        rval = setup_link_indir(linksrc, dstpath, force)
+    elif os.path.isfile(linksrc):
+        if force:
+            os.rename(linksrc, linksrc + ".original")
+            os.symlink(dstpath, linksrc)
+        else:
+            rval = ("%s is a file; rename it or use --force" % linksrc)
+    elif not os.path.exists(linksrc):
+        os.symlink(dstpath, linksrc)
+    else:
+        if force:
+            os.rename(linksrc, linksrc + ".original")
+            os.symlink(dstpath, linksrc)
+        else:
+            rval = ("%s exists;" % linksrc +
+                    " rename it or use --force")
+    return rval
+
+
+# -----------------------------------------------------------------------------
+def setup_link_indir(linksrc, dstpath, force):
+    rval = ""
+    linknv = os.path.join(linksrc, "nv")
+    if not os.path.exists(linknv):
+        os.symlink(dstpath, linknv)
+    elif os.path.isfile(linknv) or os.path.isdir(linknv):
+        if force:
+            os.rename(linknv, linknv + ".original")
+            os.symlink(dstpath, linknv)
+        else:
+            rval = ("%s is a file or directory; rename it or use --force" %
+                    linknv)
+    elif os.path.islink(linknv):
+        if os.readlink(linknv) == dstpath:
+            rval = ("%s -> %s already" % (linknv, dstpath))
+        elif force:
+            os.rename(linknv, linknv + ".original")
+            os.symlink(dstpath, linknv)
+        else:
+            rval = ("%s is a link to %s; rename it or use --force" %
+                    (linknv, os.readlink(linknv)))
+    elif force:
+        os.rename(linknv, linknv + ".original")
+        os.symlink(dstpath, linknv)
+    else:
+        rval = ("%s exists; rename it or use --force" % linknv)
+    return rval
 
 
 # -----------------------------------------------------------------------------

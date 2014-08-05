@@ -1,3 +1,4 @@
+import glob
 import nv
 import os
 import pdb
@@ -56,6 +57,46 @@ class TestNV(unittest.TestCase):
         keep = os.getenv("KEEPFILES")
         if os.path.exists(cls.testdir) and not keep:
             shutil.rmtree(cls.testdir)
+
+    # -------------------------------------------------------------------------
+    def test_help(self):
+        actual = pexpect.run("./nv.py help")
+        exp = [
+            "activate - copy enable.snippet into the startup script(s)",
+            "deactivate - remove enable.snippet from the startup script(s)",
+            "disable - make a snip non-executable so it cannot run",
+            'enable - make a snip executable so it can run',
+            'help - show a list of available functions',
+            'list - list the snips that can be turned on or off',
+            'setup - make a link from dir or file to this program', 
+            ]
+        for p in exp:
+            self.assertTrue(p in actual,
+                            "Expected '%s' in '%s'" % (p, actual))
+
+    # -------------------------------------------------------------------------
+    def test_porl(self):
+        home = os.getenv("HOME")
+        dname = os.path.join(home, ".nv", "proc.d")
+        exp = (dname,
+               os.path.join(home, ".bashrc"),
+               os.path.join(dname, "enable.snippet"))
+        actual = nv.porl('p')
+        self.assertEqual(exp, actual,
+                         "Expected '%s', got '%s'" % (exp, actual))
+
+        dname = os.path.join(home, ".nv", "login.d")
+        exp = (dname,
+               glob.glob(os.path.join(home, ".*profile"))[0],
+               os.path.join(dname, "enable.snippet"))
+        actual = nv.porl('l')
+        self.assertEqual(exp, actual,
+                         "Expected '%s', got '%s'" % (exp, actual))
+
+        self.assertRaisesRegexp(SystemExit,
+                                "directory must be 'p' or 'l'",
+                                nv.porl,
+                                'q')
 
     # -------------------------------------------------------------------------
     def test_setup_link_noarg(self):
@@ -123,7 +164,18 @@ class TestNV(unittest.TestCase):
         ./nv.py setup xdir
         --> ln -s this xdir/nv
         """
-        self.fail('construction')
+        stem = funcname()
+        tdir = os.path.join(self.testdir, stem + "_dir")
+        os.makedirs(tdir)
+        tlink = os.path.join(tdir, "nv")
+        if os.path.islink(tlink):
+            os.unlink(tlink)
+
+        result = nv.setup_link(tdir, self.nvpath, False)
+
+        self.assertEqual(self.nvpath, os.readlink(tlink),
+                         "Expected '%s' -> '%s'; got '%s' -> '%s'" %
+                         (tlink, self.nvpath, tlink, os.readlink(tlink)))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xdir_f(self):
@@ -132,7 +184,18 @@ class TestNV(unittest.TestCase):
         ./nv.py setup -f xdir
         --> ln -s this xdir/nv
         """
-        self.fail('construction')
+        stem = funcname()
+        tdir = os.path.join(self.testdir, stem + "_dir")
+        os.makedirs(tdir)
+        tlink = os.path.join(tdir, "nv")
+        if os.path.islink(tlink):
+            os.unlink(tlink)
+
+        result = nv.setup_link(tdir, self.nvpath, True)
+
+        self.assertEqual(self.nvpath, os.readlink(tlink),
+                         "Expected '%s' -> '%s'; got '%s' -> '%s'" %
+                         (tlink, self.nvpath, tlink, os.readlink(tlink)))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xfile(self):
@@ -141,7 +204,20 @@ class TestNV(unittest.TestCase):
         ./nv.py setup xfile
         --> err: 'rename xfile or use another link name'
         """
-        self.fail('construction')
+        stem = funcname()
+        testfile = os.path.join(self.testdir, stem + "_link")
+        open(testfile, 'w').close()
+
+        result = nv.setup_link(testfile, self.nvpath, False)
+
+        exp = "%s is a file; rename it or use --force" % testfile
+        self.assertTrue(exp in result,
+                        "Expect '%s' in '%s'" % (exp, result))
+        self.assertFalse(os.path.islink(testfile),
+                        "Expected '%s' to not be a link" % testfile)
+        self.assertFalse(os.path.exists(testfile + ".original"),
+                        "Did not expect '%s' to be renamed to '%s'" %
+                        (testfile, testfile + ".original"))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xfile_f(self):
@@ -150,43 +226,21 @@ class TestNV(unittest.TestCase):
         ./nv.py setup -f xfile
         --> mv xfile xfile.original; ln -s this xfile
         """
-        self.fail('construction')
+        stem = funcname()
+        testfile = os.path.join(self.testdir, stem + "_link")
+        open(testfile, 'w').close()
 
-    # -------------------------------------------------------------------------
-    def test_setup_link_xlink_nxdir(self):
-        """
-        existing link to an non-existent directory
-        ./nv.py setup xlinkdir
-        --> ln -s this xlinkdir/nv
-        """
-        self.fail('construction')
+        result = nv.setup_link(testfile, self.nvpath, True)
 
-    # -------------------------------------------------------------------------
-    def test_setup_link_xlink_nxdir_f(self):
-        """
-        existing link to an non-existent directory with -f
-        ./nv.py setup xlinkdir
-        --> ln -s this xlinkdir/nv
-        """
-        self.fail('construction')
-
-    # -------------------------------------------------------------------------
-    def test_setup_link_xlinkdir_nonv(self):
-        """
-        existing link to an existing directory with no nv file
-        ./nv.py setup xlinkdir
-        --> ln -s this xlinkdir/nv
-        """
-        self.fail('construction')
-
-    # -------------------------------------------------------------------------
-    def test_setup_link_xlinkdir_nonv_f(self):
-        """
-        existing link to an existing directory with no nv file with -f
-        ./nv.py setup xlinkdir
-        --> ln -s this xlinkdir/nv
-        """
-        self.fail('construction')
+        self.assertTrue(os.path.islink(testfile),
+                        "Expected '%s' to be a link" % testfile)
+        self.assertTrue(os.path.exists(testfile + ".original"),
+                        "Expected '%s' to be renamed to '%s'" %
+                        (testfile, testfile + ".original"))
+        self.assertEqual(self.nvpath, os.readlink(testfile),
+                         "Expected '%s' -> '%s'; got '%s' -> '%s'" %
+                         (testfile, self.nvpath,
+                          testfile, os.readlink(testfile)))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xlink_nxfile(self):
@@ -195,14 +249,32 @@ class TestNV(unittest.TestCase):
         ./nv.py setup xlinkfile -> nx file
         --> err: 'xlinkfile exists; rename or use --force'
         """
-        self.fail('construction')
+        stem = funcname()
+        testfile = os.path.join(self.testdir, stem + "_file")
+        testlink = os.path.join(self.testdir, stem + "_link")
+        if os.path.exists(testfile):
+            os.unlink(testfile)
+        os.symlink(testfile, testlink)
+
+        result = nv.setup_link(testlink, self.nvpath, False)
+
+        exp = ('%s -> %s; remove %s or use --force' %
+               (testlink, testfile, testlink))
+        self.assertTrue(exp in result,
+                        "Expected '%s' in '%s'" % (exp, result))
+        self.assertTrue(os.path.islink(testlink),
+                        "Expected '%s' to be a link" % testlink)
+        self.assertEqual(testfile, os.readlink(testlink),
+                         "Expected '%s' -> '%s', got '%s' -> '%s'" %
+                         (testlink, testfile,
+                          testlink, os.readlink(testlink)))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xlink_nxfile_f(self):
         """
         existing link pointing at non existent file with --force
         ./nv.py setup -f xlinkfile
-        --> unlink xlinkfile; ln -s this xlinkfile
+        --> rename xlinkfile; ln -s this xlinkfile
         """
         stem = funcname()
         testfile = os.path.join(self.testdir, stem + "_file")
@@ -217,6 +289,9 @@ class TestNV(unittest.TestCase):
                (testlink, testfile, testlink))
         self.assertTrue(os.path.islink(testlink),
                         "Expected '%s' to be a link" % testlink)
+        self.assertTrue(os.path.islink(testlink + ".original"),
+                        "Expected '%s' to be a link" %
+                        testlink + ".original")
         self.assertEqual(self.nvpath, os.readlink(testlink),
                          "Expected '%s' -> '%s', got '%s' -> '%s'" %
                          (testlink, self.nvpath,
@@ -229,7 +304,29 @@ class TestNV(unittest.TestCase):
         ./nv.py setup xlinkdir
         --> ln -s this xlinkdir/nv
         """
-        self.fail('construction')
+        stem = funcname()
+        testlink = os.path.join(self.testdir, stem + "_l")
+        fdir = os.path.join(self.testdir, stem + "_d")
+        if not os.path.exists(fdir):
+            os.makedirs(fdir)
+        lnv = os.path.join(fdir, "nv")
+        if os.path.exists(lnv):
+            os.unlink(lnv)
+        os.symlink(fdir, testlink)
+
+        result = nv.setup_link(testlink, self.nvpath, False)
+
+        exp = ""
+        self.assertEqual(exp, result,
+                        "Expected '%s' to be empty" % (result))
+        lnvorig = lnv + ".original"
+        self.assertFalse(os.path.exists(lnvorig),
+                         "%s should not exist" % lnvorig)
+        self.assertTrue(os.path.islink(lnv),
+                         "%s should not be a link" % lnv)
+        self.assertEqual(self.nvpath, os.readlink(lnv),
+                         "Expected '%s' to point at '%s'" %
+                         (lnv, self.nvpath))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xlinkdir_nonv_f(self):
@@ -238,7 +335,30 @@ class TestNV(unittest.TestCase):
         ./nv.py setup xlinkdir
         --> ln -s this xlinkdir/nv
         """
-        self.fail('construction')
+        stem = funcname()
+        testlink = os.path.join(self.testdir, stem + "_l")
+        fdir = os.path.join(self.testdir, stem + "_d")
+        if not os.path.exists(fdir):
+            os.makedirs(fdir)
+        lnv = os.path.join(fdir, "nv")
+        if os.path.exists(lnv):
+            os.unlink(lnv)
+        os.symlink(fdir, testlink)
+
+        result = nv.setup_link(testlink, self.nvpath, True)
+
+
+        exp = ""
+        self.assertEqual(exp, result,
+                        "Expected '%s' to be empty" % (result))
+        lnvorig = lnv + ".original"
+        self.assertFalse(os.path.exists(lnvorig),
+                         "%s should not exist" % lnvorig)
+        self.assertTrue(os.path.islink(lnv),
+                         "%s should not be a link" % lnv)
+        self.assertEqual(self.nvpath, os.readlink(lnv),
+                         "Expected '%s' to point at '%s'" %
+                         (lnv, self.nvpath))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xlinkdir_nv(self):
