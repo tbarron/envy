@@ -9,6 +9,6 @@ csource()
 
 resource()
 {
-   $EDITOR ~/$1
-   csource ~/$1
+   $EDITOR $1
+   csource $1
 }
