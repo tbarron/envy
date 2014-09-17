@@ -124,7 +124,7 @@ def nv_deactivate(args):
 def nv_disable(args):
     """disable - make a snip non-executable so it cannot run
 
-    usage: nv disable [-D p|l] {<snip>|--all}
+    usage: nv disable [-D p|l] {--all|<snip> ...}
 
     Make snip executable. If envy is enabled in the correct start up script
     (.bahsrc or .profile), executable snips will be sourced.
@@ -141,29 +141,24 @@ def nv_disable(args):
                  help="run under pdb")
     p.add_option('-D', '--dir',
                  action='store', default='b', dest='dir',
-                 help="p=proc.d, l=login.d, b=both")
+                 help="p=proc.d, l=login.d")
     (o, a) = p.parse_args(args)
 
     if o.debug:
         pdb.set_trace()
 
     if o.all:
-        ans = raw_input("About to disable everything!!!\n" +
-                        "If you're sure, type 'yes' > ")
-        if ans != 'yes':
-            sys.exit(0)
-        script = __file__
-        while os.path.islink(script):
-            script = os.readlink(script)
-        nvdir = os.path.dirname(script)
-        fpaths = glob.glob(os.path.join(nvdir, "login.d", "*"))
-        fpaths += glob.glob(os.path.join(nvdir, "proc.d", "*"))
-
-        for fp in fpaths:
-            if os.path.basename(fp) == 'enable_snippet':
-                continue
-            os.chmod(fp, 0644)
+        make_sure("disable")
+        if o.dir in ['l', 'b']:
+            for snip in sniplist('l'):
+                disable('l', snip)
+        if o.dir in ['p', 'b']:
+            for snip in sniplist('p'):
+                disable('p', snip)
     else:
+        # 'p' -> proc.d
+        # 'l' -> login.d
+        # 'b' -> both
         for snip in a:
             if o.dir in ['p', 'b']:
                 disable('p', snip)
@@ -175,7 +170,7 @@ def nv_disable(args):
 def nv_enable(args):
     """enable - make a snip executable so it can run
 
-    usage: nv enable [-D p|l] <snip>
+    usage: nv enable [-D p|l] {--all|<snip> ...}
 
     Make snip executable. If envy is enabled in the correct start up script
     (.bahsrc or .profile), executable snips will be sourced.
@@ -184,6 +179,9 @@ def nv_enable(args):
     will be considered.
     """
     p = optparse.OptionParser()
+    p.add_option('-a', '--all',
+                 action='store_true', default=False, dest='all',
+                 help="disable everything")
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
@@ -195,11 +193,20 @@ def nv_enable(args):
     if o.debug:
         pdb.set_trace()
 
-    for snip in a:
-        if o.dir in ['p', 'b']:
-            enable('p', snip)
+    if o.all:
+        make_sure("enable")
         if o.dir in ['l', 'b']:
-            enable('l', snip)
+            for fp in sniplist('l'):
+                enable('l', os.path.basename(fp))
+        if o.dir in ['p', 'b']:
+            for fp in sniplist('p'):
+                enable('p', os.path.basename(fp))
+    else:
+        for snip in a:
+            if o.dir in ['p', 'b']:
+                enable('p', snip)
+            if o.dir in ['l', 'b']:
+                enable('l', snip)
 
 
 # -----------------------------------------------------------------------------
@@ -269,6 +276,16 @@ def nv_list(args):
                   (bname, status, description(fname)))
             
         
+# -----------------------------------------------------------------------------
+def memoize(f):
+    memo = {}
+    def helper(*args):
+        if ''.join(args) not in memo:
+            memo[''.join(args)] = f(*args)
+        return memo[''.join(args)]
+    return helper
+
+
 # -----------------------------------------------------------------------------
 def conditionally_append(which):
     """
@@ -347,7 +364,7 @@ def disable(which, snip):
     (dname, tname, sname) = porl(which)
     snippath = os.path.join(dname, snip)
     if os.path.exists(snippath):
-        os.chmod(snippath, mode(snippath) & 0644)
+        os.chmod(snippath, mode(snippath) & 0666)
 
     
 # -----------------------------------------------------------------------------
@@ -370,14 +387,36 @@ def fatal(msg):
 
 
 # -----------------------------------------------------------------------------
-def memoize(f):
-    memo = {}
-    def helper(*args):
-        if ''.join(args) not in memo:
-            memo[''.join(args)] = f(*args)
-        return memo[''.join(args)]
-    return helper
+def sniplist(porl):
+    """
+    Return a list of snips from nvdir/proc.d (porl == 'p') or nvdir/login.d
+    (porl == 'l').
+    """
+    nvdir = get_nvdir()
+    which = {'p': 'proc.d', 'l': 'login.d'}[porl]
+    bnlist = [os.path.basename(x) for x in glob.glob(os.path.join(nvdir,
+                                                                  which,
+                                                                  "*"))]
+    if 'enable.snippet' in bnlist:
+        bnlist.remove('enable.snippet')
+    return bnlist
 
+
+# -----------------------------------------------------------------------------
+@memoize
+def get_nvdir():
+    script = __file__
+    while os.path.islink(script):
+        script = os.readlink(script)
+    return os.path.dirname(script)
+
+
+# -----------------------------------------------------------------------------
+def make_sure(action):
+    ans = raw_input("About to %s everything!!!\n" % action +
+                    "If you're sure, type 'yes' > ")
+    if ans != 'yes':
+        sys.exit(0)
 
 # -----------------------------------------------------------------------------
 @memoize
