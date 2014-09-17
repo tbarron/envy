@@ -124,7 +124,7 @@ def nv_deactivate(args):
 def nv_disable(args):
     """disable - make a snip non-executable so it cannot run
 
-    usage: nv disable [-D p|l] <snip>
+    usage: nv disable [-D p|l] {<snip>|--all}
 
     Make snip executable. If envy is enabled in the correct start up script
     (.bahsrc or .profile), executable snips will be sourced.
@@ -133,22 +133,42 @@ def nv_disable(args):
     will be considered.
     """
     p = optparse.OptionParser()
+    p.add_option('-a', '--all',
+                 action='store_true', default=False, dest='all',
+                 help="disable everything")
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
     p.add_option('-D', '--dir',
                  action='store', default='b', dest='dir',
-                 help="p=proc.d, l=login.d")
+                 help="p=proc.d, l=login.d, b=both")
     (o, a) = p.parse_args(args)
 
     if o.debug:
         pdb.set_trace()
 
-    for snip in a:
-        if o.dir in ['p', 'b']:
-            disable('p', snip)
-        if o.dir in ['l', 'b']:
-            disable('l', snip)
+    if o.all:
+        ans = raw_input("About to disable everything!!!\n" +
+                        "If you're sure, type 'yes' > ")
+        if ans != 'yes':
+            sys.exit(0)
+        script = __file__
+        while os.path.islink(script):
+            script = os.readlink(script)
+        nvdir = os.path.dirname(script)
+        fpaths = glob.glob(os.path.join(nvdir, "login.d", "*"))
+        fpaths += glob.glob(os.path.join(nvdir, "proc.d", "*"))
+
+        for fp in fpaths:
+            if os.path.basename(fp) == 'enable_snippet':
+                continue
+            os.chmod(fp, 0644)
+    else:
+        for snip in a:
+            if o.dir in ['p', 'b']:
+                disable('p', snip)
+            if o.dir in ['l', 'b']:
+                disable('l', snip)
 
 
 # -----------------------------------------------------------------------------
