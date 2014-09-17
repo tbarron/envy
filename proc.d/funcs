@@ -1,0 +1,9 @@
+#!@! define bash functions
+[[ $DEBUG ]] && echo "$FILE"
+# ---------------------------------------------------------------------------
+# Activate a virtual environment
+#
+activate()
+{
+    . $HOME/venv/$1/bin/activate
+}
