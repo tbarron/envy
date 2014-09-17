@@ -1,6 +1,19 @@
 #!@! run $HOME/.$HOST if it exists
 [[ $DEBUG ]] && echo $FILE
-HOST=".`hostname -s`"
-if [ -f $HOME/$HOST ]; then
-   . $HOME/$HOST
-fi
+
+
+HOSTRC=$HOME/.`expr \`hostname -s\` : "\([^0-9]*\)[-0-9]*.*"`
+HOSTRCN=$HOME/.`hostname -s`
+HOSTRCX=$HOME/.`hostname -s`_rc
+# echo "HOSTRC = '$HOSTRC, $HOSTRCN, $HOSTRCX'"
+# dbgmsg "csource $HOSTRC"
+csource $HOSTRC
+# dbgmsg "csource $HOSTRCN"
+csource $HOSTRCN
+# dbgmsg "csource $HOSTRCX"
+csource $HOSTRCX
+
+# HOST=".`hostname -s`"
+# if [ -f $HOME/$HOST ]; then
+#    . $HOME/$HOST
+# fi
