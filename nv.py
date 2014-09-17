@@ -194,11 +194,23 @@ def nv_enable(args):
     if o.debug:
         pdb.set_trace()
 
-    for snip in a:
-        if o.dir in ['p', 'b']:
-            enable('p', snip)
+    if o.all:
+        make_sure("enable")
         if o.dir in ['l', 'b']:
-            enable('l', snip)
+            for snip in sniplist('l'):
+                enable('l', snip)
+        if o.dir in ['p', 'b']:
+            for snip in sniplist('p'):
+                enable('p', snip)
+    else:
+        # 'p' -> proc.d
+        # 'l' -> login.d
+        # 'b' -> both
+        for snip in a:
+            if o.dir in ['p', 'b']:
+                enable('p', snip)
+            if o.dir in ['l', 'b']:
+                enable('l', snip)
 
 
 # -----------------------------------------------------------------------------
