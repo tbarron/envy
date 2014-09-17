@@ -125,7 +125,7 @@ def nv_deactivate(args):
 def nv_disable(args):
     """disable - make a snip non-executable so it cannot run
 
-    usage: nv disable [-D p|l] <snip>
+    usage: nv disable [-D p|l] {--all|<snip> ...}
 
     Make snip executable. If envy is enabled in the correct start up script
     (.bahsrc or .profile), executable snips will be sourced.
@@ -134,6 +134,9 @@ def nv_disable(args):
     will be considered.
     """
     p = optparse.OptionParser()
+    p.add_option('-a', '--all',
+                 action='store_true', default=False, dest='all',
+                 help="disable everything")
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
@@ -145,18 +148,30 @@ def nv_disable(args):
     if o.debug:
         pdb.set_trace()
 
-    for snip in a:
-        if o.dir in ['p', 'b']:
-            disable('p', snip)
+    if o.all:
+        make_sure("disable")
         if o.dir in ['l', 'b']:
-            disable('l', snip)
+            for snip in sniplist('l'):
+                disable('l', snip)
+        if o.dir in ['p', 'b']:
+            for snip in sniplist('p'):
+                disable('p', snip)
+    else:
+        # 'p' -> proc.d
+        # 'l' -> login.d
+        # 'b' -> both
+        for snip in a:
+            if o.dir in ['p', 'b']:
+                disable('p', snip)
+            if o.dir in ['l', 'b']:
+                disable('l', snip)
 
 
 # -----------------------------------------------------------------------------
 def nv_enable(args):
     """enable - make a snip executable so it can run
 
-    usage: nv enable [-D p|l] <snip>
+    usage: nv enable [-D p|l] {--all|<snip> ...}
 
     Make snip executable. If envy is enabled in the correct start up script
     (.bahsrc or .profile), executable snips will be sourced.
@@ -165,6 +180,9 @@ def nv_enable(args):
     will be considered.
     """
     p = optparse.OptionParser()
+    p.add_option('-a', '--all',
+                 action='store_true', default=False, dest='all',
+                 help="disable everything")
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
@@ -263,6 +281,16 @@ def nv_list(args):
             
         
 # -----------------------------------------------------------------------------
+def memoize(f):
+    memo = {}
+    def helper(*args):
+        if ''.join(args) not in memo:
+            memo[''.join(args)] = f(*args)
+        return memo[''.join(args)]
+    return helper
+
+
+# -----------------------------------------------------------------------------
 def conditionally_append(which):
     """
     If the enable_snippet is in the startup file, say so. Otherwise, append the
@@ -340,7 +368,7 @@ def disable(which, snip):
     (dname, tname, sname) = porl(which)
     snippath = os.path.join(dname, snip)
     if os.path.exists(snippath):
-        os.chmod(snippath, mode(snippath) & 0644)
+        os.chmod(snippath, mode(snippath) & 0666)
 
     
 # -----------------------------------------------------------------------------
@@ -356,18 +384,43 @@ def fatal(msg):
     """
     Print an error message and exit
     """
-    raise SystemExit("\n%s\n" % msg)
+    print("")
+    print("   %s" % msg)
+    print("")
+    sys.exit(1)
 
 
 # -----------------------------------------------------------------------------
-def memoize(f):
-    memo = {}
-    def helper(*args):
-        if ''.join(args) not in memo:
-            memo[''.join(args)] = f(*args)
-        return memo[''.join(args)]
-    return helper
+def sniplist(porl):
+    """
+    Return a list of snips from nvdir/proc.d (porl == 'p') or nvdir/login.d
+    (porl == 'l').
+    """
+    nvdir = get_nvdir()
+    which = {'p': 'proc.d', 'l': 'login.d'}[porl]
+    bnlist = [os.path.basename(x) for x in glob.glob(os.path.join(nvdir,
+                                                                  which,
+                                                                  "*"))]
+    if 'enable.snippet' in bnlist:
+        bnlist.remove('enable.snippet')
+    return bnlist
 
+
+# -----------------------------------------------------------------------------
+@memoize
+def get_nvdir():
+    script = __file__
+    while os.path.islink(script):
+        script = os.readlink(script)
+    return os.path.dirname(script)
+
+
+# -----------------------------------------------------------------------------
+def make_sure(action):
+    ans = raw_input("About to %s everything!!!\n" % action +
+                    "If you're sure, type 'yes' > ")
+    if ans != 'yes':
+        sys.exit(0)
 
 # -----------------------------------------------------------------------------
 @memoize
