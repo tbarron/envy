@@ -1,0 +1,46 @@
+#!@! conditionally source or edit and re-source a file
+[[ $DEBUG ]] && echo $FILE
+#
+---------------------------------------------------------------------------
+# Activate a virtual environment
+#
+activate()
+{
+    . $HOME/venv/$1/bin/activate
+}
+
+#
+---------------------------------------------------------------------------
+# Add an element to a -PATH variable if it's not already present
+#
+function add_once() 
+{
+   NAME=$1
+   STRING=$2
+   if [[ "$3" == "" ]]; then
+      WHERE="after"
+   else
+      WHERE=$3
+   fi
+   RC=`expr "${!NAME}" : ".*$STRING.*"`
+   if [[ "$RC" == "0" ]]; then
+       if [[ "$WHERE" == "after" ]]; then
+           export $NAME="${!NAME}:$STRING"
+       else
+           export $NAME="$STRING:${!NAME}"
+       fi
+   fi
+}
+
+csource()
+{
+   if [ -e $1 ]; then
+      . $1
+   fi
+}
+
+resource()
+{
+   $EDITOR $1
+   csource $1
+}

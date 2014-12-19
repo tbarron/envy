@@ -1,4 +1,10 @@
 #!@! set $PATH
 [[ $DEBUG ]] && echo "$DIR: $FILE"
-export PATH="${PATH}:$HOME/bin"
-export PATH="${PATH}:/Library/Frameworks/Python.framework/Versions/2.7/bin"
+
+add_once PATH /opt/subversion/bin before
+add_once PATH /usr/local/bin before
+add_once PATH /usr/X11/bin
+add_once PATH /usr/local/git/bin
+add_once PATH $HOME/Library/Python/2.7/bin
+add_once PATH $HOME/bin
+add_once PATH "."
