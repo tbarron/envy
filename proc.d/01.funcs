@@ -42,10 +42,30 @@ csource()
 }
 
 # ---------------------------------------------------------------------------
+# return the most recent match
+#
+latest()
+{
+   ls -1td "$1" | head -1
+}
+
+# ---------------------------------------------------------------------------
 # Edit a file and then source it
 #
 resource()
 {
    $EDITOR $1
    csource $1
+}
+
+# ---------------------------------------------------------------------------
+# attach to the most appropriate tmux session
+#
+tm()
+{
+    if [[ "$COLUMNS" -lt 150 ]]; then
+        tmux a -t top
+    else
+        tmux a -t wide
+    fi
 }
