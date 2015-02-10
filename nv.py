@@ -6,6 +6,8 @@ import pdb
 import shutil
 import stat
 import sys
+import time
+
 
 # -----------------------------------------------------------------------------
 def main(args=None):
@@ -86,9 +88,9 @@ def nv_activate(args):
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        conditionally_append('p')
+        engage('p')
     if o.dir in ['l', 'b']:
-        conditionally_append('l')
+        engage('l')
 
 
 # -----------------------------------------------------------------------------
@@ -116,9 +118,9 @@ def nv_deactivate(args):
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        conditionally_remove('p')
+        disengage('p')
     if o.dir in ['l', 'b']:
-        conditionally_remove('l')
+        disengage('l')
 
 
 # -----------------------------------------------------------------------------
@@ -303,68 +305,72 @@ def memoize(f):
 
 
 # -----------------------------------------------------------------------------
-def conditionally_append(which):
+def disengage(which):
     """
-    If the enable_snippet is in the startup file, say so. Otherwise, append the
-    enable_snippet to the startup file.
+    if target.%Y.%m%d.%H%M%S exists,
+       move target to target.nv
+       move target.%Y.%m%d.%H%M%S to target
     """
-    (dname, tname, sname) = porl(which)
+    h = which_dict()
+    z = h[which]
+    target = expand(z['target'])
+    signature = h['signature']
 
-    try:
-        f = open(tname, 'r')
-        d = f.readlines()
-        f.close()
-    except IOError:
-        d = []
+    with open(target, 'r') as f:
+        c = f.readlines()
 
-
-    g = open(sname, 'r')
-    e = g.readlines()
-    g.close()
-    signature = e[0]
-
-    if signature in d:
-        print("%s is already activated in %s" % (dname, tname))
+    if all([signature not in x for x in c]):
+        print("%s is already deactivated" % target)
         return
 
-    f = open(tname, 'a')
-    f.writelines(e)
-    f.close()
+    clist = sorted(glob.glob("%s.*" % target))
+    if len(clist) < 1:
+        print("Nothing to fall back to")
+    else:
+        fallback = clist[-1]
+        os.unlink(target)
+        os.rename(fallback, target)
 
 
 # -----------------------------------------------------------------------------
-def conditionally_remove(which):
+def engage(which):
     """
-    If the enable_snippet is in the startup file, remove it. Otherwise, whine
-    and die.
+    if signature in target file, say so and stop
+    move target file to target.YYYY.mmdd.HHMMSS
+    put appropriate profile invocation in target file with signature
     """
-    (dname, tname, sname) = porl(which)
+    h = which_dict()
+    z = h[which]
+    target = expand(z['target'])
+    signature = h['signature']
+    try:
+        with open(target, 'r') as f:
+            c = f.readlines()
+    except IOError:
+        c = []
 
-    f = open(tname, 'r')
-    d = f.readlines()
-    f.close()
-
-
-    g = open(sname, 'r')
-    e = g.readlines()
-    g.close()
-    signature = e[0]
-
-    if signature not in d:
-        print("%s is not active in %s" % (dname, tname))
+    if any([signature in x for x in c]):
+        print('nv is already activated for %s' % z['target'])
         return
 
-    r = open(tname, 'r')
-    w = open(tname + ".new", 'w')
-    line = r.readline()
-    while line != signature:
-        w.write(line)
-        line = r.readline()
-    w.close()
-    r.close()
+    newname = '%s.%s' % (target, time.strftime("%Y.%m%d.%H%M%S"))
+    os.rename(target, newname)
+    with open(target, 'w') as f:
+        f.write('# added by nv. please do not edit.\n')
+        f.write('%s\n' % z['cmd'])
 
-    os.rename(tname, tname + ".original")
-    os.rename(tname + ".new", tname)
+    print("nv has been activated. %s has been moved to %s" %
+          (target, newname))
+    print("for anything from %s that you need to keep, please" % newname)
+    print("put it in a script under %s and enable it" % z['dirname'])
+
+
+# -----------------------------------------------------------------------------
+def expand(value):
+    """
+    Apply os.path.expanduser() and os.path.expandvars() to a string
+    """
+    return os.path.expandvars(os.path.expanduser(value))
 
 
 # -----------------------------------------------------------------------------
@@ -538,6 +544,20 @@ def setup_link_indir(linksrc, dstpath, force):
     else:
         rval = ("%s exists; rename it or use --force" % linknv)
     return rval
+
+
+# -----------------------------------------------------------------------------
+def which_dict():
+    h = {'p': {'stem': 'proc',
+               'dirname': '$HOME/.nv/proc.d',
+               'target': '$HOME/.bashrc',
+               'cmd': '. $HOME/.nv/profile proc'},
+         'l': {'stem': 'login',
+               'dirname': '$HOME/.nv/login.d',
+               'target': '$HOME/.bash_profile',
+               'cmd': '. $HOME/.nv/profile login'},
+         'signature': '# added by nv.'}
+    return h
 
 
 # -----------------------------------------------------------------------------
