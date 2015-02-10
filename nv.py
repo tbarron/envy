@@ -310,9 +310,12 @@ def conditionally_append(which):
     """
     (dname, tname, sname) = porl(which)
 
-    f = open(tname, 'r')
-    d = f.readlines()
-    f.close()
+    try:
+        f = open(tname, 'r')
+        d = f.readlines()
+        f.close()
+    except IOError:
+        d = []
 
 
     g = open(sname, 'r')
