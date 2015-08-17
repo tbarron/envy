@@ -27,7 +27,7 @@ pd()
 setps()
 {
     PUSER=${LOGNAME:-$USER}
-    HST=`hostname -s`
+    HST=${HOSTNAME%%.*}
     TTY=`basename \`tty | tr " " "_"\``
     PREFIX=`expr "$PS1" : "(\([a-z]*\)).*"`
     PREFIX=${PREFIX:+"($PREFIX)"}
