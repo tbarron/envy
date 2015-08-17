@@ -351,7 +351,7 @@ def engage(which):
     """
     h = which_dict()
     z = h[which]
-    target = expand(z['target'])
+    target = resolve(z['target'])
     signature = h['signature']
     try:
         c = contents(target)
@@ -557,6 +557,20 @@ def setup_link_indir(linksrc, dstpath, force):
 
 
 # -----------------------------------------------------------------------------
+def resolve(poss):
+    """
+    Figure out which file of a list exists.
+    """
+    if type(poss) == str:
+        return expand(poss)
+    elif type(poss) == list:
+        for z in poss:
+            p = expand(z)
+            if os.path.exists(p):
+                return p
+
+
+# -----------------------------------------------------------------------------
 def which_dict():
     h = {'p': {'stem': 'proc',
                'dirname': '$HOME/.nv/proc.d',
@@ -564,7 +578,7 @@ def which_dict():
                'cmd': '. $HOME/.nv/profile proc'},
          'l': {'stem': 'login',
                'dirname': '$HOME/.nv/login.d',
-               'target': '$HOME/.bash_profile',
+               'target': ['$HOME/.bash_profile', '$HOME/.profile'],
                'cmd': '. $HOME/.nv/profile login'},
          'signature': '# added by nv.'}
     return h
