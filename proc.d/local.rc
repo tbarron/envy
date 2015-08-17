@@ -1,5 +1,5 @@
 #!@! run $HOME/.local if it exists
-[[ $DEBUG ]] && echo $FILE
+debug
 if [ -f $HOME/.local ]; then
    . $HOME/.local
 fi

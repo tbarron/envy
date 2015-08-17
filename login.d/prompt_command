@@ -1,4 +1,4 @@
 #!@! set PROMPT_COMMAND so tmux will set the window name
-[[ $DEBUG ]] && echo $FILE
+debug
 export PROMPT_COMMAND='/bin/echo -ne "\033k$(hostname -s)\033\\"'
 

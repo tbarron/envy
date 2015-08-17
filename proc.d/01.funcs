@@ -1,5 +1,5 @@
 #!@! utility shell functions 
-[[ $DEBUG ]] && echo $FILE
+debug
 
 # ---------------------------------------------------------------------------
 # Activate a virtual environment
@@ -80,5 +80,4 @@ unset -f setaliases
 unset -f cdd
 unset -f conditional_swtools_module_load
 unset -f dbgmsg
-unset -f debug
 unset -f hostbug

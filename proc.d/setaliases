@@ -1,4 +1,4 @@
 #!@! source $HOME/.aliases if it exists
-[[ $DEBUG ]] && echo $FILE
+debug
 csource $HOME/.aliases
 alias aliases="resource $HOME/.aliases"

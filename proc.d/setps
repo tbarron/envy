@@ -1,5 +1,5 @@
 #!@! set up cd, pd, and the promp setting machinery
-[[ $DEBUG ]] && echo $FILE
+debug
 # ---------------------------------------------------------------------------
 # Remember where we were, go to the next place, and update the prompt
 #
