@@ -305,6 +305,17 @@ def memoize(f):
 
 
 # -----------------------------------------------------------------------------
+def contents(filename):
+    """
+    return the contents of *filename*
+    """
+    f = open(filename, 'r')
+    c = f.readlines()
+    f.close()
+    return c
+
+
+# -----------------------------------------------------------------------------
 def disengage(which):
     """
     if target.%Y.%m%d.%H%M%S exists,
@@ -316,8 +327,7 @@ def disengage(which):
     target = expand(z['target'])
     signature = h['signature']
 
-    with open(target, 'r') as f:
-        c = f.readlines()
+    c = contents(target)
 
     if all([signature not in x for x in c]):
         print("%s is already deactivated" % target)
@@ -344,8 +354,7 @@ def engage(which):
     target = expand(z['target'])
     signature = h['signature']
     try:
-        with open(target, 'r') as f:
-            c = f.readlines()
+        c = contents(target)
     except IOError:
         c = []
 
@@ -355,9 +364,10 @@ def engage(which):
 
     newname = '%s.%s' % (target, time.strftime("%Y.%m%d.%H%M%S"))
     os.rename(target, newname)
-    with open(target, 'w') as f:
-        f.write('# added by nv. please do not edit.\n')
-        f.write('%s\n' % z['cmd'])
+    f = open(target, 'w')
+    f.write('# added by nv. please do not edit.\n')
+    f.write('%s\n' % z['cmd'])
+    f.close()
 
     print("nv has been activated. %s has been moved to %s" %
           (target, newname))
