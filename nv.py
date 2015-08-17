@@ -358,7 +358,7 @@ def engage(which):
     except IOError:
         c = []
 
-    if any([signature in x for x in c]):
+    if signature in "\n".join(c):
         print('nv is already activated for %s' % z['target'])
         return
 
