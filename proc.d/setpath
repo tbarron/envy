@@ -1,10 +1,16 @@
 #!@! set $PATH
 [[ $DEBUG ]] && echo "$DIR: $FILE"
 
-add_once PATH /opt/subversion/bin before
-add_once PATH /usr/local/bin before
-add_once PATH /usr/X11/bin
-add_once PATH /usr/local/git/bin
-add_once PATH $HOME/Library/Python/2.7/bin
-add_once PATH $HOME/bin
-add_once PATH "."
+export PATH="$HOME/bin"
+export PATH=$PATH:"/usr/local/bin"
+export PATH=$PATH:"/opt/X11/bin"
+export PATH=$PATH:"/usr/local/munki"
+export PATH=$PATH:"/opt/subversion/bin"
+export PATH=$PATH:"/Users/tpb/.pythonbrew/bin"
+export PATH=$PATH:"/usr/X11/bin"
+export PATH=$PATH:"/Users/tpb/Library/Python/2.7/bin"
+export PATH=$PATH:"/usr/bin"
+export PATH=$PATH:"/bin"
+export PATH=$PATH:"/usr/sbin"
+export PATH=$PATH:"/sbin"
+export PATH=$PATH:"."
