@@ -1,4 +1,5 @@
 #!@! set $DEBUG
 unset DEBUG
 export DEBUG="true"
-echo "DEBUG = $DEBUG"
+echo "DEBUG = $DEBUG ($$)"
+echo "HOME = $HOME"
