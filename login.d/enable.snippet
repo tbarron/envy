@@ -1,7 +1,7 @@
 # added by envy. please do not edit anything from here down
 LOGIN_D=$HOME/.nv/login.d
 if [ -d $LOGIN_D ]; then
-    for FILE in $LOGIN_D/* ; do
+    for FILE in $LOGIN_D/*[^~] ; do
         test -f "$FILE" || continue
         test -x "$FILE" || continue
         . "$FILE"

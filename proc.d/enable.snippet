@@ -2,7 +2,7 @@
 PROC_D=$HOME/.nv/proc.d
 if [ -d $PROC_D ]; then
     export DIR=$PROC_D
-    for FILE in $PROC_D/* ; do
+    for FILE in $PROC_D/*[^~] ; do
         test -f "$FILE" || continue
         test -x "$FILE" || continue
         . "$FILE"
