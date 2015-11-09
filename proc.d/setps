@@ -29,7 +29,7 @@ setps()
     PUSER=${LOGNAME:-$USER}
     HST=${HOSTNAME%%.*}
     TTY=`basename \`tty | tr " " "_"\``
-    PREFIX=`expr "$PS1" : "(\([a-z]*\)).*"`
+    PREFIX=`expr "$PS1" : "(\([a-z-]*\)).*"`
     PREFIX=${PREFIX:+"($PREFIX)"}
     if [[ "$SSH_TTY" != "" ]]; then
         EASHMARK=""
