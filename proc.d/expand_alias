@@ -1,5 +1,5 @@
 #!@! generate a list of aliases
-[[ $DEBUG ]] && echo "$DIR: $FILE"
+debug
 # ---------------------------------------------------------------------------
 # expand 'alias beaker%="ssh beaker%.ccs.ornl.gov" -i33:44' to a series
 # of alias commands like 'alias beaker33="ssh beaker33.ccs.ornl.gov"'
