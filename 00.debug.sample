@@ -1,0 +1,3 @@
+#!@! set $DEBUG
+unset DEBUG
+export DEBUG="true"

@@ -1,4 +1,4 @@
 #!@! source $HOME/.environment if it exists
-[[ $DEBUG ]] && echo $FILE
+debug
 csource $HOME/.environment
 alias environment="resource $HOME/.environment"

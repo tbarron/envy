@@ -1,4 +1,5 @@
 #!@! source $HOME/.aliases if it exists
-[[ $DEBUG ]] && echo $FILE
+debug
 csource $HOME/.aliases
 alias aliases="resource $HOME/.aliases"
+alias vtn='echo "X[mX(BX)0OX[?5lX7X[rX8" | tr "XO" "\033\017"'

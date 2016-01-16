@@ -1,5 +1,7 @@
 #!@! set $DEBUG
+function debug()
+{
+    [[ $DEBUG ]] && echo $FILE
+}
 unset DEBUG
-export DEBUG="true"
-echo "DEBUG = $DEBUG ($$)"
-echo "HOME = $HOME"
+debug
