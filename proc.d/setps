@@ -1,5 +1,5 @@
 #!@! set up cd, pd, and the promp setting machinery
-[[ $DEBUG ]] && echo $FILE
+debug
 # ---------------------------------------------------------------------------
 # Remember where we were, go to the next place, and update the prompt
 #
@@ -26,14 +26,17 @@ pd()
 #
 setps()
 {
-   PUSER=${LOGNAME:-$USER}
-   HST=`hostname -s`
-   TTY=`basename \`tty | tr " " "_"\``
-   PREFIX=`expr "$PS1" : "(\([a-z]*\)).*"`
-   if [[ "$PREFIX" != "" ]]; then
-      PREFIX="($PREFIX)"
-   fi
-   PS1="${PREFIX}<$PUSER @ $HST[$TTY]:$PWD>
+    PUSER=${LOGNAME:-$USER}
+    HST=${HOSTNAME%%.*}
+    TTY=`basename \`tty | tr " " "_"\``
+    PREFIX=`expr "$PS1" : "(\([a-z]*\)).*"`
+    PREFIX=${PREFIX:+"($PREFIX)"}
+    if [[ "$SSH_TTY" != "" ]]; then
+        EASHMARK=""
+    else
+        EASHMARK="(*)"
+    fi
+    PS1="${PREFIX}<${PUSER}${EASHMARK} @ $HST[$TTY]:${PWD}>
 $ "
 }
 

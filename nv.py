@@ -6,6 +6,8 @@ import pdb
 import shutil
 import stat
 import sys
+import time
+
 
 # -----------------------------------------------------------------------------
 def main(args=None):
@@ -86,9 +88,9 @@ def nv_activate(args):
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        conditionally_append('p')
+        engage('p')
     if o.dir in ['l', 'b']:
-        conditionally_append('l')
+        engage('l')
 
 
 # -----------------------------------------------------------------------------
@@ -116,16 +118,16 @@ def nv_deactivate(args):
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        conditionally_remove('p')
+        disengage('p')
     if o.dir in ['l', 'b']:
-        conditionally_remove('l')
+        disengage('l')
 
 
 # -----------------------------------------------------------------------------
 def nv_disable(args):
     """disable - make a snip non-executable so it cannot run
 
-    usage: nv disable [-D p|l] <snip>
+    usage: nv disable [-D p|l] {--all|<snip> ...}
 
     Make snip executable. If envy is enabled in the correct start up script
     (.bahsrc or .profile), executable snips will be sourced.
@@ -134,6 +136,9 @@ def nv_disable(args):
     will be considered.
     """
     p = optparse.OptionParser()
+    p.add_option('-a', '--all',
+                 action='store_true', default=False, dest='all',
+                 help="disable everything")
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
@@ -145,18 +150,30 @@ def nv_disable(args):
     if o.debug:
         pdb.set_trace()
 
-    for snip in a:
-        if o.dir in ['p', 'b']:
-            disable('p', snip)
+    if o.all:
+        make_sure("disable")
         if o.dir in ['l', 'b']:
-            disable('l', snip)
+            for snip in sniplist('l'):
+                disable('l', snip)
+        if o.dir in ['p', 'b']:
+            for snip in sniplist('p'):
+                disable('p', snip)
+    else:
+        # 'p' -> proc.d
+        # 'l' -> login.d
+        # 'b' -> both
+        for snip in a:
+            if o.dir in ['p', 'b']:
+                disable('p', snip)
+            if o.dir in ['l', 'b']:
+                disable('l', snip)
 
 
 # -----------------------------------------------------------------------------
 def nv_enable(args):
     """enable - make a snip executable so it can run
 
-    usage: nv enable [-D p|l] <snip>
+    usage: nv enable [-D p|l] {--all|<snip> ...}
 
     Make snip executable. If envy is enabled in the correct start up script
     (.bahsrc or .profile), executable snips will be sourced.
@@ -165,6 +182,9 @@ def nv_enable(args):
     will be considered.
     """
     p = optparse.OptionParser()
+    p.add_option('-a', '--all',
+                 action='store_true', default=False, dest='all',
+                 help="disable everything")
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
@@ -176,11 +196,23 @@ def nv_enable(args):
     if o.debug:
         pdb.set_trace()
 
-    for snip in a:
-        if o.dir in ['p', 'b']:
-            enable('p', snip)
+    if o.all:
+        make_sure("enable")
         if o.dir in ['l', 'b']:
-            enable('l', snip)
+            for snip in sniplist('l'):
+                enable('l', snip)
+        if o.dir in ['p', 'b']:
+            for snip in sniplist('p'):
+                enable('p', snip)
+    else:
+        # 'p' -> proc.d
+        # 'l' -> login.d
+        # 'b' -> both
+        for snip in a:
+            if o.dir in ['p', 'b']:
+                enable('p', snip)
+            if o.dir in ['l', 'b']:
+                enable('l', snip)
 
 
 # -----------------------------------------------------------------------------
@@ -263,65 +295,92 @@ def nv_list(args):
             
         
 # -----------------------------------------------------------------------------
-def conditionally_append(which):
-    """
-    If the enable_snippet is in the startup file, say so. Otherwise, append the
-    enable_snippet to the startup file.
-    """
-    (dname, tname, sname) = porl(which)
-
-    f = open(tname, 'r')
-    d = f.readlines()
-    f.close()
-
-
-    g = open(sname, 'r')
-    e = g.readlines()
-    g.close()
-    signature = e[0]
-
-    if signature in d:
-        print("%s is already activated in %s" % (dname, tname))
-        return
-
-    f = open(tname, 'a')
-    f.writelines(e)
-    f.close()
+def memoize(f):
+    memo = {}
+    def helper(*args):
+        if ''.join(args) not in memo:
+            memo[''.join(args)] = f(*args)
+        return memo[''.join(args)]
+    return helper
 
 
 # -----------------------------------------------------------------------------
-def conditionally_remove(which):
+def contents(filename):
     """
-    If the enable_snippet is in the startup file, remove it. Otherwise, whine
-    and die.
+    return the contents of *filename*
     """
-    (dname, tname, sname) = porl(which)
-
-    f = open(tname, 'r')
-    d = f.readlines()
+    f = open(filename, 'r')
+    c = f.readlines()
     f.close()
+    return c
 
 
-    g = open(sname, 'r')
-    e = g.readlines()
-    g.close()
-    signature = e[0]
+# -----------------------------------------------------------------------------
+def disengage(which):
+    """
+    if target.%Y.%m%d.%H%M%S exists,
+       move target to target.nv
+       move target.%Y.%m%d.%H%M%S to target
+    """
+    h = which_dict()
+    z = h[which]
+    target = expand(z['target'])
+    signature = h['signature']
 
-    if signature not in d:
-        print("%s is not active in %s" % (dname, tname))
+    c = contents(target)
+
+    if all([signature not in x for x in c]):
+        print("%s is already deactivated" % target)
         return
 
-    r = open(tname, 'r')
-    w = open(tname + ".new", 'w')
-    line = r.readline()
-    while line != signature:
-        w.write(line)
-        line = r.readline()
-    w.close()
-    r.close()
+    clist = sorted(glob.glob("%s.*" % target))
+    if len(clist) < 1:
+        print("Nothing to fall back to")
+    else:
+        fallback = clist[-1]
+        os.unlink(target)
+        os.rename(fallback, target)
 
-    os.rename(tname, tname + ".original")
-    os.rename(tname + ".new", tname)
+
+# -----------------------------------------------------------------------------
+def engage(which):
+    """
+    if signature in target file, say so and stop
+    move target file to target.YYYY.mmdd.HHMMSS
+    put appropriate profile invocation in target file with signature
+    """
+    h = which_dict()
+    z = h[which]
+    target = resolve(z['target'])
+    signature = h['signature']
+    try:
+        c = contents(target)
+    except IOError:
+        c = []
+
+    if signature in "\n".join(c):
+        print('nv is already activated for %s' % z['target'])
+        return
+
+    newname = '%s.%s' % (target, time.strftime("%Y.%m%d.%H%M%S"))
+    os.rename(target, newname)
+    f = open(target, 'w')
+    f.write('# added by nv. please do not edit.\n')
+    f.write('%s\n' % z['cmd'])
+    f.close()
+
+    print("nv has been activated. %s has been moved to %s" %
+          (target, newname))
+    print("for anything from %s that you need to keep, please" % newname)
+    print("put it in a script under %s and enable it" % z['dirname'])
+
+
+# -----------------------------------------------------------------------------
+def expand(value):
+    """
+    Apply os.path.expanduser() and os.path.expandvars() to a string
+    """
+    return os.path.expandvars(os.path.expanduser(value))
 
 
 # -----------------------------------------------------------------------------
@@ -340,7 +399,7 @@ def disable(which, snip):
     (dname, tname, sname) = porl(which)
     snippath = os.path.join(dname, snip)
     if os.path.exists(snippath):
-        os.chmod(snippath, mode(snippath) & 0644)
+        os.chmod(snippath, mode(snippath) & 0666)
 
     
 # -----------------------------------------------------------------------------
@@ -356,18 +415,43 @@ def fatal(msg):
     """
     Print an error message and exit
     """
-    raise SystemExit("\n%s\n" % msg)
+    print("")
+    print("   %s" % msg)
+    print("")
+    sys.exit(1)
 
 
 # -----------------------------------------------------------------------------
-def memoize(f):
-    memo = {}
-    def helper(*args):
-        if ''.join(args) not in memo:
-            memo[''.join(args)] = f(*args)
-        return memo[''.join(args)]
-    return helper
+def sniplist(porl):
+    """
+    Return a list of snips from nvdir/proc.d (porl == 'p') or nvdir/login.d
+    (porl == 'l').
+    """
+    nvdir = get_nvdir()
+    which = {'p': 'proc.d', 'l': 'login.d'}[porl]
+    bnlist = [os.path.basename(x) for x in glob.glob(os.path.join(nvdir,
+                                                                  which,
+                                                                  "*"))]
+    if 'enable.snippet' in bnlist:
+        bnlist.remove('enable.snippet')
+    return bnlist
 
+
+# -----------------------------------------------------------------------------
+@memoize
+def get_nvdir():
+    script = __file__
+    while os.path.islink(script):
+        script = os.readlink(script)
+    return os.path.dirname(script)
+
+
+# -----------------------------------------------------------------------------
+def make_sure(action):
+    ans = raw_input("About to %s everything!!!\n" % action +
+                    "If you're sure, type 'yes' > ")
+    if ans != 'yes':
+        sys.exit(0)
 
 # -----------------------------------------------------------------------------
 @memoize
@@ -470,6 +554,34 @@ def setup_link_indir(linksrc, dstpath, force):
     else:
         rval = ("%s exists; rename it or use --force" % linknv)
     return rval
+
+
+# -----------------------------------------------------------------------------
+def resolve(poss):
+    """
+    Figure out which file of a list exists.
+    """
+    if type(poss) == str:
+        return expand(poss)
+    elif type(poss) == list:
+        for z in poss:
+            p = expand(z)
+            if os.path.exists(p):
+                return p
+
+
+# -----------------------------------------------------------------------------
+def which_dict():
+    h = {'p': {'stem': 'proc',
+               'dirname': '$HOME/.nv/proc.d',
+               'target': '$HOME/.bashrc',
+               'cmd': '. $HOME/.nv/profile proc'},
+         'l': {'stem': 'login',
+               'dirname': '$HOME/.nv/login.d',
+               'target': ['$HOME/.bash_profile', '$HOME/.profile'],
+               'cmd': '. $HOME/.nv/profile login'},
+         'signature': '# added by nv.'}
+    return h
 
 
 # -----------------------------------------------------------------------------

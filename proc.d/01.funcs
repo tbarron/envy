@@ -2,12 +2,41 @@
 [[ $DEBUG ]] && echo $FILE
 
 # -----------------------------------------------------------------------------
+# Activate a virtual environment
+#
+unset -f activate
 activate()
 {
     . $HOME/venv/$1/bin/activate
 }
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Add an element to a -PATH variable if it's not already present
+#
+unset -f add_once
+function add_once() 
+{
+   NAME=$1
+   STRING=$2
+   if [[ "$3" == "" ]]; then
+      WHERE="after"
+   else
+      WHERE=$3
+   fi
+   RC=`expr "${!NAME}" : ".*$STRING.*"`
+   if [[ "$RC" == "0" ]]; then
+       if [[ "$WHERE" == "after" ]]; then
+           export $NAME="${!NAME}:$STRING"
+       else
+           export $NAME="$STRING:${!NAME}"
+       fi
+   fi
+}
+
+# ---------------------------------------------------------------------------
+# Source a file if it exists
+#
+unset -f csource
 csource()
 {
    if [ -e $1 ]; then
@@ -15,9 +44,40 @@ csource()
    fi
 }
 
-# -----------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# return the most recent match
+#
+unset -f latest
+latest()
+{
+   ls -1td "$1" | head -1
+}
+
+# ---------------------------------------------------------------------------
+# Edit a file and then source it
+#
+unset -f resource
 resource()
 {
-   $EDITOR ~/$1
-   csource ~/$1
+   $EDITOR $1
+   csource $1
 }
+
+# ---------------------------------------------------------------------------
+# attach to the most appropriate tmux session
+#
+unset -f tm
+tm()
+{
+    if [[ "$COLUMNS" -lt 150 ]]; then
+        tmux a -t top
+    else
+        tmux a -t wide
+    fi
+}
+
+unset -f setaliases
+unset -f cdd
+unset -f conditional_swtools_module_load
+unset -f dbgmsg
+unset -f hostbug
