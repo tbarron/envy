@@ -1,9 +1,9 @@
 #!@! set $DEBUG
 function debug()
 {
-    $DEBUG && echo $FILE
+    [[ $DEBUG ]] && echo $FILE
 }
 unset DEBUG
-export DEBUG="false"
+# export DEBUG="false"
 debug
 

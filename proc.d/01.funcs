@@ -1,13 +1,16 @@
 #!@! utility shell functions 
-debug
-
 # ---------------------------------------------------------------------------
 # Activate a virtual environment
 #
 unset -f activate
 activate()
 {
-    . $HOME/venv/$1/bin/activate
+    if [[ $1 == *"/"* ]]
+    then
+        . $1/bin/activate
+    else
+        . $HOME/venv/$1/bin/activate
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -50,7 +53,7 @@ csource()
 unset -f latest
 latest()
 {
-   ls -1td "$1" | head -1
+    ls -dt $* | head -1
 }
 
 # ---------------------------------------------------------------------------
