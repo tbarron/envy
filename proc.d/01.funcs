@@ -1,10 +1,23 @@
 #!@! utility shell functions 
 debug
 
-# ---------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Check for a function
+#
+if [[ `which safe_unset` != "safe_unset not found" ]]; then
+   unset -f safe_unset
+fi
+safe_unset()
+{
+    if [[ `which $1` != "$1 not found" ]]; then
+        unset -f $1
+    fi
+}
+
+# -----------------------------------------------------------------------------
 # Activate a virtual environment
 #
-unset -f activate
+safe_unset activate
 activate()
 {
     if [[ $1 == *"/"* ]]
@@ -18,7 +31,7 @@ activate()
 # ---------------------------------------------------------------------------
 # Add an element to a -PATH variable if it's not already present
 #
-unset -f add_once
+safe_unset add_once
 function add_once() 
 {
    NAME=$1
@@ -41,7 +54,7 @@ function add_once()
 # ---------------------------------------------------------------------------
 # Source a file if it exists
 #
-unset -f csource
+safe_unset csource
 csource()
 {
    if [ -e $1 ]; then
@@ -52,7 +65,7 @@ csource()
 # ---------------------------------------------------------------------------
 # return the most recent match
 #
-unset -f latest
+safe_unset latest
 latest()
 {
     ls -dt $* | head -1
@@ -61,7 +74,7 @@ latest()
 # ---------------------------------------------------------------------------
 # Edit a file and then source it
 #
-unset -f resource
+safe_unset resource
 resource()
 {
    $EDITOR $1
@@ -71,7 +84,7 @@ resource()
 # ---------------------------------------------------------------------------
 # attach to the most appropriate tmux session
 #
-unset -f tm
+safe_unset tm
 tm()
 {
     if [[ "$COLUMNS" -lt 150 ]]; then
@@ -81,8 +94,8 @@ tm()
     fi
 }
 
-unset -f setaliases
-unset -f cdd
-unset -f conditional_swtools_module_load
-unset -f dbgmsg
-unset -f hostbug
+safe_unset setaliases
+safe_unset cdd
+safe_unset conditional_swtools_module_load
+safe_unset dbgmsg
+safe_unset hostbug
