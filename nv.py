@@ -368,17 +368,22 @@ def engage(which, filename=None):
         print('nv is already activated for %s' % target)
         return
 
-    newname = '%s.%s' % (target, time.strftime("%Y.%m%d.%H%M%S"))
-    os.rename(target, newname)
+    moved = ''
+    if os.path.exists(target):
+        newname = '%s.%s' % (target, time.strftime("%Y.%m%d.%H%M%S"))
+        os.rename(target, newname)
+        moved = '{0} has been moved to {1}'.format(target, newname)
+        moved = '\n'.join(['{0} has been moved to {1}',
+                           "for anything from {1} that you need to keep, please",
+                           "put it in a script under {2} and enable it"])
+        moved = moved.format(target, newname, z['dirname'])
     f = open(target, 'w')
     f.write('# added by nv. please do not edit.\n')
     f.write('%s\n' % z['cmd'])
     f.close()
 
-    print("nv has been activated. %s has been moved to %s" %
-          (target, newname))
-    print("for anything from %s that you need to keep, please" % newname)
-    print("put it in a script under %s and enable it" % z['dirname'])
+    print("nv has been activated.")
+    print(moved)
 
 
 # -----------------------------------------------------------------------------
