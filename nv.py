@@ -82,22 +82,25 @@ def nv_activate(args):
     p.add_option('-D', '--dir',
                  action='store', default='b', dest='dir',
                  help="p=proc.d, l=login.d")
+    p.add_option('-f', '--filename',
+                 action='store', default=None, dest='filename',
+                 help="e.g., .zprofile, .zshrc")
     (o, a) = p.parse_args(args)
 
     if o.debug:
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        engage('p')
+        engage('p', filename=o.filename)
     if o.dir in ['l', 'b']:
-        engage('l')
+        engage('l', filename=o.filename)
 
 
 # -----------------------------------------------------------------------------
 def nv_deactivate(args):
     """deactivate - remove enable.snippet from the startup script(s)
 
-    usage: nv deactivate [-D p|l]
+    usage: nv deactivate [-D p|l] [-f <filename>]
 
     Remove proc.d/enable.snippet and/or login.d/enable.snippet from .bashrc
     and/or .profile, respectively.
@@ -112,15 +115,18 @@ def nv_deactivate(args):
     p.add_option('-D', '--dir',
                  action='store', default='b', dest='dir',
                  help="p=proc.d, l=login.d")
+    p.add_option('-f', '--filename',
+                 action='store', default=None, dest='filename',
+                 help="e.g., .zshrc, .zprofile")
     (o, a) = p.parse_args(args)
 
     if o.debug:
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        disengage('p')
+        disengage('p', filename=o.filename)
     if o.dir in ['l', 'b']:
-        disengage('l')
+        disengage('l', filename=o.filename)
 
 
 # -----------------------------------------------------------------------------
@@ -316,7 +322,7 @@ def contents(filename):
 
 
 # -----------------------------------------------------------------------------
-def disengage(which):
+def disengage(which, filename=None):
     """
     if target.%Y.%m%d.%H%M%S exists,
        move target to target.nv
@@ -324,7 +330,7 @@ def disengage(which):
     """
     h = which_dict()
     z = h[which]
-    target = expand(z['target'])
+    target = filename or expand(z['target'])
     signature = h['signature']
 
     c = contents(target)
@@ -343,7 +349,7 @@ def disengage(which):
 
 
 # -----------------------------------------------------------------------------
-def engage(which):
+def engage(which, filename=None):
     """
     if signature in target file, say so and stop
     move target file to target.YYYY.mmdd.HHMMSS
@@ -351,7 +357,7 @@ def engage(which):
     """
     h = which_dict()
     z = h[which]
-    target = resolve(z['target'])
+    target = filename or resolve(z['target'])
     signature = h['signature']
     try:
         c = contents(target)
@@ -359,7 +365,7 @@ def engage(which):
         c = []
 
     if signature in "\n".join(c):
-        print('nv is already activated for %s' % z['target'])
+        print('nv is already activated for %s' % target)
         return
 
     newname = '%s.%s' % (target, time.strftime("%Y.%m%d.%H%M%S"))
@@ -575,11 +581,11 @@ def which_dict():
     h = {'p': {'stem': 'proc',
                'dirname': '$HOME/.nv/proc.d',
                'target': '$HOME/.bashrc',
-               'cmd': '. $HOME/.nv/profile proc'},
+               'cmd': '. $HOME/.nv/nv_enable proc'},
          'l': {'stem': 'login',
                'dirname': '$HOME/.nv/login.d',
                'target': ['$HOME/.bash_profile', '$HOME/.profile'],
-               'cmd': '. $HOME/.nv/profile login'},
+               'cmd': '. $HOME/.nv/nv_enable login'},
          'signature': '# added by nv.'}
     return h
 
