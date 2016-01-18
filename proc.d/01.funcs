@@ -1,4 +1,6 @@
 #!@! utility shell functions 
+debug
+
 # ---------------------------------------------------------------------------
 # Activate a virtual environment
 #
