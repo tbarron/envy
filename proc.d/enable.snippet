@@ -1,10 +1,2 @@
 # added by envy. please do not edit anything from here down
-PROC_D=$HOME/.nv/proc.d
-if [ -d $PROC_D ]; then
-    export DIR=$PROC_D
-    for FILE in $PROC_D/*[^~] ; do
-        test -f "$FILE" || continue
-        test -x "$FILE" || continue
-        . "$FILE"
-    done
-fi
+. $HOME/.nv/nv_enable proc

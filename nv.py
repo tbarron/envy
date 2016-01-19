@@ -3,8 +3,11 @@ import glob
 import optparse
 import os
 import pdb
+import shutil
 import stat
 import sys
+import time
+
 
 # -----------------------------------------------------------------------------
 def main(args=None):
@@ -85,9 +88,9 @@ def nv_activate(args):
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        conditionally_append('p')
+        engage('p')
     if o.dir in ['l', 'b']:
-        conditionally_append('l')
+        engage('l')
 
 
 # -----------------------------------------------------------------------------
@@ -115,9 +118,9 @@ def nv_deactivate(args):
         pdb.set_trace()
 
     if o.dir in ['p', 'b']:
-        conditionally_remove('p')
+        disengage('p')
     if o.dir in ['l', 'b']:
-        conditionally_remove('l')
+        disengage('l')
 
 
 # -----------------------------------------------------------------------------
@@ -210,32 +213,44 @@ def nv_enable(args):
 
 
 # -----------------------------------------------------------------------------
-def nv_link(args):
-    """link - make a link from dir or file to this program
+def nv_setup(args):
+    """setup - make a link from dir or file to this program
 
-    usage: nv.py link [$HOME/bin|/somewhere/nosuch]
+    usage: nv.py setup [$HOME/bin|/somewhere/nosuch]
+
+    Also, copy 00.debug.sample to login.d/00.debug if login.d/00.debug does not
+    exist.
     """
     p = optparse.OptionParser()
     p.add_option('-d', '--debug',
                  action='store_true', default=False, dest='debug',
                  help="run under pdb")
+    p.add_option('-f', '--force',
+                 action='store_true', default=False, dest='force',
+                 help="overwrite existing symlink")
+    p.add_option('-l', '--linkname',
+                 action='store', default="", dest='linkname',
+                 help="alternate name for 'nv'")
     (o, a) = p.parse_args(args)
 
     if o.debug:
         pdb.set_trace()
 
     try:
-        target = a[0]
+        linksrc = a[0]
     except IndexError:
-        fatal("Target directory or file is required")
+        fatal("Link directory or file is required")
 
-    this = os.path.abspath(__file__)
-    if os.path.isdir(target):
-        os.symlink(this, os.path.join(target, "nv"))
-    elif os.path.exists(target):
-        os.symlink(this, target)
-    else:
-        fatal("Argument must be a directory or non-existent file")
+    msg = setup_link(linksrc, os.path.abspath(__file__), o.force)
+    if msg != '':
+        fatal(msg)
+
+    # copy $NV/00.debug.sample $NV/login.d/00.debug
+    nvroot = os.path.dirname(__file__)
+    debug_sample = os.path.join(nvroot, "00.debug.sample")
+    debug = os.path.join(nvroot, "login.d", "00.debug")
+    if not os.path.exists(debug):
+        shutil.copy(debug_sample, debug)
 
 
 # -----------------------------------------------------------------------------
@@ -287,65 +302,82 @@ def memoize(f):
 
 
 # -----------------------------------------------------------------------------
-def conditionally_append(which):
+def contents(filename):
     """
-    If the enable_snippet is in the startup file, say so. Otherwise, append the
-    enable_snippet to the startup file.
+    return the contents of *filename*
     """
-    (dname, tname, sname) = porl(which)
-
-    f = open(tname, 'r')
-    d = f.readlines()
+    f = open(filename, 'r')
+    c = f.readlines()
     f.close()
-
-
-    g = open(sname, 'r')
-    e = g.readlines()
-    g.close()
-    signature = e[0]
-
-    if signature in d:
-        print("%s is already activated in %s" % (dname, tname))
-        return
-
-    f = open(tname, 'a')
-    f.writelines(e)
-    f.close()
+    return c
 
 
 # -----------------------------------------------------------------------------
-def conditionally_remove(which):
+def disengage(which):
     """
-    If the enable_snippet is in the startup file, remove it. Otherwise, whine
-    and die.
+    if target.%Y.%m%d.%H%M%S exists,
+       move target to target.nv
+       move target.%Y.%m%d.%H%M%S to target
     """
-    (dname, tname, sname) = porl(which)
+    h = which_dict()
+    z = h[which]
+    target = expand(z['target'])
+    signature = h['signature']
 
-    f = open(tname, 'r')
-    d = f.readlines()
-    f.close()
+    c = contents(target)
 
-
-    g = open(sname, 'r')
-    e = g.readlines()
-    g.close()
-    signature = e[0]
-
-    if signature not in d:
-        print("%s is not active in %s" % (dname, tname))
+    if all([signature not in x for x in c]):
+        print("%s is already deactivated" % target)
         return
 
-    r = open(tname, 'r')
-    w = open(tname + ".new", 'w')
-    line = r.readline()
-    while line != signature:
-        w.write(line)
-        line = r.readline()
-    w.close()
-    r.close()
+    clist = sorted(glob.glob("%s.*" % target))
+    if len(clist) < 1:
+        print("Nothing to fall back to")
+    else:
+        fallback = clist[-1]
+        os.unlink(target)
+        os.rename(fallback, target)
 
-    os.rename(tname, tname + ".original")
-    os.rename(tname + ".new", tname)
+
+# -----------------------------------------------------------------------------
+def engage(which):
+    """
+    if signature in target file, say so and stop
+    move target file to target.YYYY.mmdd.HHMMSS
+    put appropriate profile invocation in target file with signature
+    """
+    h = which_dict()
+    z = h[which]
+    target = resolve(z['target'])
+    signature = h['signature']
+    try:
+        c = contents(target)
+    except IOError:
+        c = []
+
+    if signature in "\n".join(c):
+        print('nv is already activated for %s' % z['target'])
+        return
+
+    newname = '%s.%s' % (target, time.strftime("%Y.%m%d.%H%M%S"))
+    os.rename(target, newname)
+    f = open(target, 'w')
+    f.write('# added by nv. please do not edit.\n')
+    f.write('%s\n' % z['cmd'])
+    f.close()
+
+    print("nv has been activated. %s has been moved to %s" %
+          (target, newname))
+    print("for anything from %s that you need to keep, please" % newname)
+    print("put it in a script under %s and enable it" % z['dirname'])
+
+
+# -----------------------------------------------------------------------------
+def expand(value):
+    """
+    Apply os.path.expanduser() and os.path.expandvars() to a string
+    """
+    return os.path.expandvars(os.path.expanduser(value))
 
 
 # -----------------------------------------------------------------------------
@@ -455,6 +487,98 @@ def porl(which):
     else:
         fatal("directory must be 'p' or 'l'")
     return(dname, tname, sname)
+
+
+# -----------------------------------------------------------------------------
+def setup_link(linksrc, dstpath, force):
+    rval = ""
+    if os.path.islink(linksrc):
+        if os.path.isdir(linksrc):
+            rval = setup_link_indir(linksrc, dstpath, force)
+        elif os.readlink(linksrc) == dstpath:
+            rval = "%s -> %s already" % (linksrc, dstpath)
+        elif force:
+            os.rename(linksrc, linksrc + ".original")
+            os.symlink(dstpath, linksrc)
+        else:
+            rval = ("%s -> %s; remove %s or use --force" %
+                    (linksrc, os.readlink(linksrc), linksrc))
+    elif os.path.isdir(linksrc):
+        rval = setup_link_indir(linksrc, dstpath, force)
+    elif os.path.isfile(linksrc):
+        if force:
+            os.rename(linksrc, linksrc + ".original")
+            os.symlink(dstpath, linksrc)
+        else:
+            rval = ("%s is a file; rename it or use --force" % linksrc)
+    elif not os.path.exists(linksrc):
+        os.symlink(dstpath, linksrc)
+    else:
+        if force:
+            os.rename(linksrc, linksrc + ".original")
+            os.symlink(dstpath, linksrc)
+        else:
+            rval = ("%s exists;" % linksrc +
+                    " rename it or use --force")
+    return rval
+
+
+# -----------------------------------------------------------------------------
+def setup_link_indir(linksrc, dstpath, force):
+    rval = ""
+    linknv = os.path.join(linksrc, "nv")
+    if not os.path.exists(linknv):
+        os.symlink(dstpath, linknv)
+    elif os.path.isfile(linknv) or os.path.isdir(linknv):
+        if force:
+            os.rename(linknv, linknv + ".original")
+            os.symlink(dstpath, linknv)
+        else:
+            rval = ("%s is a file or directory; rename it or use --force" %
+                    linknv)
+    elif os.path.islink(linknv):
+        if os.readlink(linknv) == dstpath:
+            rval = ("%s -> %s already" % (linknv, dstpath))
+        elif force:
+            os.rename(linknv, linknv + ".original")
+            os.symlink(dstpath, linknv)
+        else:
+            rval = ("%s is a link to %s; rename it or use --force" %
+                    (linknv, os.readlink(linknv)))
+    elif force:
+        os.rename(linknv, linknv + ".original")
+        os.symlink(dstpath, linknv)
+    else:
+        rval = ("%s exists; rename it or use --force" % linknv)
+    return rval
+
+
+# -----------------------------------------------------------------------------
+def resolve(poss):
+    """
+    Figure out which file of a list exists.
+    """
+    if type(poss) == str:
+        return expand(poss)
+    elif type(poss) == list:
+        for z in poss:
+            p = expand(z)
+            if os.path.exists(p):
+                return p
+
+
+# -----------------------------------------------------------------------------
+def which_dict():
+    h = {'p': {'stem': 'proc',
+               'dirname': '$HOME/.nv/proc.d',
+               'target': '$HOME/.bashrc',
+               'cmd': '. $HOME/.nv/profile proc'},
+         'l': {'stem': 'login',
+               'dirname': '$HOME/.nv/login.d',
+               'target': ['$HOME/.bash_profile', '$HOME/.profile'],
+               'cmd': '. $HOME/.nv/profile login'},
+         'signature': '# added by nv.'}
+    return h
 
 
 # -----------------------------------------------------------------------------
