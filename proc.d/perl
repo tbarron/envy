@@ -1,0 +1,5 @@
+#!@! set perl variables to enable local::lib
+[[ $DEBUG ]] && echo $FILE
+
+PERL_MB_OPT="--install_base \"/Users/tbarron/perl5\""; export PERL_MB_OPT;
+PERL_MM_OPT="INSTALL_BASE=/Users/tbarron/perl5"; export PERL_MM_OPT;

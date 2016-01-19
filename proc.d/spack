@@ -1,0 +1,4 @@
+#!@! Add spack to $PATH
+[[ $DEBUG ]] && echo "$FILE"
+export SPACK_ROOT=$HOME/prj/spack
+. $SPACK_ROOT/share/spack/setup-env.sh

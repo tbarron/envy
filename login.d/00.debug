@@ -4,4 +4,5 @@ function debug()
     [[ $DEBUG ]] && echo $FILE
 }
 unset DEBUG
+# export DEBUG="true"
 debug

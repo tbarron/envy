@@ -1,4 +1,5 @@
 #!@! set $PATH
 debug
 export PATH="${PATH}:$HOME/bin"
-export PATH="${PATH}:/Library/Frameworks/Python.framework/Versions/2.7/bin"
+export PATH="${PATH}:$HOME/prj/spack/bin"
+export PATH="$HOME/bin:${PATH}"
