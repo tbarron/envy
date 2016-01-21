@@ -1,5 +1,4 @@
 #!@! set $PATH
 debug
-export PATH="${PATH}:$HOME/bin"
-export PATH="${PATH}:$HOME/prj/spack/bin"
-export PATH="$HOME/bin:${PATH}"
+add_once PATH $HOME/prj/spack/bin
+add_once PATH $HOME/bin
