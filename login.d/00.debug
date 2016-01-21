@@ -1,7 +1,7 @@
 #!@! set $DEBUG
 function debug()
 {
-    [[ $DEBUG ]] && echo $FILE
+    test $DEBUG && echo $FILE
 }
 unset DEBUG
 # export DEBUG="true"

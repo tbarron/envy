@@ -1,4 +1,12 @@
 #!@! utility shell functions 
+unalias which > /dev/null 2>&1
+if [[ `which debug` == "debug not found" ]]; then
+    function debug()
+    {
+        test $DEBUG && echo $FILE
+    }
+    unset DEBUG
+fi
 debug
 
 # -----------------------------------------------------------------------------
@@ -35,18 +43,19 @@ safe_unset add_once
 function add_once() 
 {
    NAME=$1
+   eval VAL=\$$NAME
    STRING=$2
    if [[ "$3" == "" ]]; then
       WHERE="after"
    else
       WHERE=$3
    fi
-   RC=`expr "${!NAME}" : ".*$STRING.*"`
+   RC=`/usr/bin/expr "${VAL}" : ".*$STRING.*"`
    if [[ "$RC" == "0" ]]; then
        if [[ "$WHERE" == "after" ]]; then
-           export $NAME="${!NAME}:$STRING"
+           export $NAME="${VAL}:$STRING"
        else
-           export $NAME="$STRING:${!NAME}"
+           export $NAME="$STRING:${VAL}"
        fi
    fi
 }
