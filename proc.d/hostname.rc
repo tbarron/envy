@@ -2,9 +2,9 @@
 debug
 
 
-HOSTRC=$HOME/.`expr \`hostname -s\` : "\([^0-9]*\)[-0-9]*.*"`
-HOSTRCN=$HOME/.`hostname -s`
-HOSTRCX=$HOME/.`hostname -s`_rc
+HOSTRC=$HOME/.`/usr/bin/expr \`/bin/hostname -s\` : "\([^0-9]*\)[-0-9]*.*"`
+HOSTRCN=$HOME/.`/bin/hostname -s`
+HOSTRCX=$HOME/.`/bin/hostname -s`_rc
 # echo "HOSTRC = '$HOSTRC, $HOSTRCN, $HOSTRCX'"
 # dbgmsg "csource $HOSTRC"
 csource $HOSTRC
@@ -13,7 +13,7 @@ csource $HOSTRCN
 # dbgmsg "csource $HOSTRCX"
 csource $HOSTRCX
 
-# HOST=".`hostname -s`"
+# HOST=".`/bin/hostname -s`"
 # if [ -f $HOME/$HOST ]; then
 #    . $HOME/$HOST
 # fi
