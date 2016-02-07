@@ -8,6 +8,7 @@ export ZSH=/Users/tbarron/.oh-my-zsh
 # ZSH_THEME="arrow"
 # ZSH_THEME="aussiegeek"
 ZSH_THEME="bureau"
+# ZSH_THEME="clean"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"

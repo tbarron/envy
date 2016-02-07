@@ -1,5 +1,12 @@
 #!@! shell functions
-[[ $DEBUG ]] && echo $FILE
+if [[ `which debug` == "debug not found" ]]; then
+    debug()
+    {
+        [[ $DEBUG ]] && echo $FILE
+    }
+    unset DEBUG
+fi
+debug
 
 # -----------------------------------------------------------------------------
 # Check for a function
@@ -50,7 +57,7 @@ function add_once()
 # Source a file if it exists
 #
 safe_unset csource
-csource()
+function csource()
 {
    if [ -e $1 ]; then
       . $1
@@ -61,7 +68,7 @@ csource()
 # return the most recent match
 #
 safe_unset latest
-latest()
+function latest()
 {
    ls -1td "$1" | head -1
 }
@@ -70,7 +77,7 @@ latest()
 # Edit a file and then source it
 #
 safe_unset resource
-resource()
+function resource()
 {
    $EDITOR $1
    csource $1
@@ -80,7 +87,7 @@ resource()
 # attach to the most appropriate tmux session
 #
 safe_unset tm
-tm()
+function tm()
 {
     if [[ "$COLUMNS" -lt 150 ]]; then
         tmux a -t top
