@@ -41,21 +41,32 @@ activate()
 safe_unset add_once
 function add_once() 
 {
-   NAME=$1
-   STRING=$2
-   if [[ "$3" == "" ]]; then
-      WHERE="after"
+   local NAME=$1
+   local STRING=$2
+   local WHERE=${3:-"before"}
+   eval "local VAL=\$$NAME"
+   [[ $VAL =~ (^|:)${STRING}(:|$) ]] && return
+
+   if [[ "$VAL" == "" ]]; then
+      export $NAME=$STRING
+   elif [[ "$WHERE" == "after" ]]; then
+      export $NAME=${VAL}:${STRING}
    else
-      WHERE=$3
+      export $NAME=${STRING}:${VAL}
    fi
-   RC=`expr "${!NAME}" : ".*$STRING.*"`
-   if [[ "$RC" == "0" ]]; then
-       if [[ "$WHERE" == "after" ]]; then
-           export $NAME="${!NAME}:$STRING"
-       else
-           export $NAME="$STRING:${!NAME}"
-       fi
-   fi
+}
+
+# ---------------------------------------------------------------------------
+# Remove an element from a -PATH variable if present
+#
+safe_unset path_rm
+function path_rm()
+{
+    autoload -U regexp-replace
+    local NAME=$1
+    local STRING=$2
+    regexp-replace $NAME ":?$STRING:?" ':'
+    regexp-replace $NAME '(^:|:$)' ''
 }
 
 # ---------------------------------------------------------------------------
