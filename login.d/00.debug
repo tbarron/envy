@@ -1,9 +1,15 @@
 #!@! set $DEBUG
+set -x
+echo $HOME
+function set_debug()
+{
+    unset DEBUG
+    test -f $HOME/.debug && export DEBUG=true
+}
 function debug()
 {
     [[ $DEBUG ]] && echo $FILE
 }
-unset DEBUG
-# export DEBUG="true"
+set_debug
 debug
 

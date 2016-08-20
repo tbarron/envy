@@ -1,10 +1,15 @@
 #!@! shell functions
 if [[ `which debug` == "debug not found" ]]; then
+    set_debug()
+    {
+        unset DEBUG
+        test -f $HOME/.debug && export DEBUG=true
+    }
     debug()
     {
         [[ $DEBUG ]] && echo $FILE
     }
-    unset DEBUG
+    set_debug
 fi
 debug
 
