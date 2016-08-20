@@ -1,4 +1,5 @@
 # Path to your oh-my-zsh installation.
+debug
 export ZSH=/Users/tbarron/.oh-my-zsh
 
 # Set name of the theme to load.
@@ -55,9 +56,6 @@ HIST_STAMPS="yyyy-mm-dd"
 plugins=(git)
 
 # User configuration
-
-export PATH="/usr/local/bin:/usr/local/git/bin:/Users/tbarron/.rvm/gems/ruby-1.9.2-p290@rails3tutorial/bin:/Users/tbarron/.rvm/gems/ruby-1.9.2-p290@global/bin:/Users/tbarron/.rvm/rubies/ruby-1.9.2-p290/bin:/Users/tbarron/.rvm/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/Users/tbarron/bin:/Users/tbarron/bin"
-# export MANPATH="/usr/local/man:$MANPATH"
 
 source $ZSH/oh-my-zsh.sh
 
