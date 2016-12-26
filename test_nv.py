@@ -71,6 +71,38 @@ def test_setup_link_noarg_f():
     assert exp in str(err)
 
 
+# -----------------------------------------------------------------------------
+def test_setup_link_nx(tmpdir):
+    """
+    non-existent file
+    ./nv.py setup nx
+    --> ln -s this nx
+    """
+    pytest.debug_func()
+    testfile = tmpdir.join('nosuch')
+    if testfile.exists():
+        testfile.remove()
+    nvpath = os.path.abspath("./nv.py")
+    nv.setup_link(testfile.strpath, nvpath, False)
+    assert testfile.islink()
+    assert nvpath == testfile.readlink()
+
+
+# -----------------------------------------------------------------------------
+def test_setup_link_nx_f(tmpdir):
+    """
+    ./nv.py setup -f nx
+    --> ln -s this nx
+    """
+    pytest.debug_func()
+    testfile = tmpdir.join('nosuch')
+    assert not testfile.exists()
+    nvpath = py.path.local("./nv.py")
+    nv.setup_link(testfile.strpath, nvpath.strpath, True)
+    assert testfile.islink()
+    assert nvpath.strpath == testfile.readlink()
+
+
 def funcname():
     return sys._getframe(1).f_code.co_name
 
