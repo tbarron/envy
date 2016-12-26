@@ -3,6 +3,7 @@ import nv
 import os
 import pdb
 import pexpect
+import pytest
 import shutil
 import sys
 import unittest
@@ -33,6 +34,29 @@ import unittest
 #     def __exit__(self, type, value, traceback):
 #         sys.stdout.close()
 #         sys.stdout = self.stdout
+
+
+# -----------------------------------------------------------------------------
+def test_porl():
+    pytest.debug_func()
+    home = os.getenv("HOME")
+    dname = os.path.join(home, ".nv", "proc.d")
+    exp = (dname,
+           os.path.join(home, ".bashrc"),
+           os.path.join(dname, "enable.snippet"))
+    actual = nv.porl('p')
+    assert exp == actual, "Expected '%s', got '%s'" % (exp, actual)
+
+    dname = os.path.join(home, ".nv", "login.d")
+    exp = (dname,
+           glob.glob(os.path.join(home, ".*profile"))[0],
+           os.path.join(dname, "enable.snippet"))
+    actual = nv.porl('l')
+    assert exp == actual, "Expected '%s', got '%s'" % (exp, actual)
+
+    with pytest.raises(SystemExit) as err:
+        nv.porl('q')
+    assert "directory must be 'p' or 'l'" in str(err)
 
 
 # -----------------------------------------------------------------------------
@@ -74,29 +98,6 @@ class TestNV(unittest.TestCase):
             self.assertTrue(p in actual,
                             "Expected '%s' in '%s'" % (p, actual))
 
-    # -------------------------------------------------------------------------
-    def test_porl(self):
-        home = os.getenv("HOME")
-        dname = os.path.join(home, ".nv", "proc.d")
-        exp = (dname,
-               os.path.join(home, ".bashrc"),
-               os.path.join(dname, "enable.snippet"))
-        actual = nv.porl('p')
-        self.assertEqual(exp, actual,
-                         "Expected '%s', got '%s'" % (exp, actual))
-
-        dname = os.path.join(home, ".nv", "login.d")
-        exp = (dname,
-               glob.glob(os.path.join(home, ".*profile"))[0],
-               os.path.join(dname, "enable.snippet"))
-        actual = nv.porl('l')
-        self.assertEqual(exp, actual,
-                         "Expected '%s', got '%s'" % (exp, actual))
-
-        self.assertRaisesRegexp(SystemExit,
-                                "directory must be 'p' or 'l'",
-                                nv.porl,
-                                'q')
 
     # -------------------------------------------------------------------------
     def test_setup_link_noarg(self):

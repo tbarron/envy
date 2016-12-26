@@ -426,10 +426,7 @@ def fatal(msg):
     """
     Print an error message and exit
     """
-    print("")
-    print("   %s" % msg)
-    print("")
-    sys.exit(1)
+    sys.exit("%s" % msg)
 
 
 # -----------------------------------------------------------------------------
