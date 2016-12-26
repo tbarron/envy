@@ -54,3 +54,7 @@ docs/_build/
 
 *~
 .attic
+*.ini
+DODO.txt
+envy/*
+.env
