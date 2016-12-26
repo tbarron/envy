@@ -47,6 +47,30 @@ def test_porl():
 
 
 # -----------------------------------------------------------------------------
+def test_setup_link_noarg(tmpdir):
+    """
+    ./nv.py setup
+    --> err: 'must specify link location'
+    """
+    pytest.debug_func()
+    exp = "Link directory or file is required"
+    with pytest.raises(SystemExit) as err:
+        nv.nv_setup([])
+    assert exp in str(err)
+
+# -----------------------------------------------------------------------------
+def test_setup_link_noarg_f():
+    """
+    ./nv.py setup -f
+    --> err: 'must specify link location'
+    """
+    pytest.debug_func()
+    exp = "Link directory or file is required"
+    with pytest.raises(SystemExit) as err:
+        nv.nv_setup(['-f'])
+    assert exp in str(err)
+
+
 def funcname():
     return sys._getframe(1).f_code.co_name
 
