@@ -1,12 +1,9 @@
 import glob
 import nv
 import os
-import pdb
 import pexpect
+import py
 import pytest
-import shutil
-import sys
-import unittest
 
 # -----------------------------------------------------------------------------
 def test_help():
