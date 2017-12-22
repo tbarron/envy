@@ -98,7 +98,7 @@ def test_setup_link_nx(tmpdir, fx_nvpath):
 
 
 # -----------------------------------------------------------------------------
-def test_setup_link_nx_f(tmpdir):
+def test_setup_link_nx_f(tmpdir, fx_nvpath):
     """
     ./nv.py setup -f nx
     --> ln -s this nx
@@ -106,10 +106,9 @@ def test_setup_link_nx_f(tmpdir):
     pytest.debug_func()
     testfile = tmpdir.join('nosuch')
     assert not testfile.exists()
-    nvpath = py.path.local("./nv.py")
-    nv.setup_link(testfile.strpath, nvpath.strpath, True)
+    nv.setup_link(testfile.strpath, fx_nvpath.strpath, True)
     assert testfile.islink()
-    assert nvpath.strpath == testfile.readlink()
+    assert fx_nvpath.strpath == testfile.readlink()
 
 
 
