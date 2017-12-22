@@ -486,29 +486,24 @@ class TestNV(unittest.TestCase):
         self.assertTrue(exp in result,
                         "Expected '%s' in '%s'" % (exp, result))
 
-    # -------------------------------------------------------------------------
-    def test_setup_link_xlinkfile_f(self):
-        """
-        existing link pointing at existing file with --force
-        ./nv.py setup -f xlinkfile
-        --> unlink xlinkfile; ln -s this xlinkfile
-        """
-        stem = funcname()
-        testfile = os.path.join(self.testdir, stem + "_file")
-        testlink = os.path.join(self.testdir, stem + "_link")
-        open(testfile, 'w').close()
-        os.symlink(testfile, testlink)
-        
-        result = nv.setup_link(testlink, self.nvpath, True)
+# -------------------------------------------------------------------------
+def test_setup_link_xlinkfile_f(tmpdir, fx_nvpath):
+    """
+    existing link pointing at existing file with --force
+    ./nv.py setup -f xlinkfile
+    --> unlink xlinkfile; ln -s this xlinkfile
+    """
+    stem = "fump"
+    testfile = tmpdir.join(stem + "_file")
+    testlink = tmpdir.join(stem + "_link")
+    testfile.ensure()
+    testlink.mksymlinkto(testfile.strpath)
+    result = nv.setup_link(testlink.strpath, fx_nvpath.strpath, True)
+    assert result == ""
+    assert testlink.islink()
+    assert fx_nvpath.strpath == testlink.readlink()
 
-        exp = ('%s -> %s; remove %s or use --force' %
-               (testlink, testfile, testlink))
-        self.assertTrue(os.path.islink(testlink),
-                        "Expected '%s' to be a link" % testlink)
-        self.assertEqual(self.nvpath, os.readlink(testlink),
-                         "Expected '%s' -> '%s', got '%s' -> '%s'" %
-                         (testlink, self.nvpath,
-                          testlink, os.readlink(testlink)))
+
 @pytest.fixture
 def fx_nvpath():
     """
