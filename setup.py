@@ -8,5 +8,5 @@ setup(name='envy',
       author_email='tusculum@gmail.com',
       url='https://github.com/tbarron/envy',
       packages=['envy'],
-      entry_points = {'console_scripts': ['nv = nv:main']}
+      entry_points={'console_scripts': ['nv = nv:main']}
       )
