@@ -15,10 +15,10 @@ def test_help():
     exp = ["activate - copy enable.snippet into the startup script(s)",
            "deactivate - remove enable.snippet from the startup script(s)",
            "disable - make a snip non-executable so it cannot run",
-           'enable - make a snip executable so it can run',
-           'help - show a list of available functions',
-           'list - list the snips that can be turned on or off',
-           'setup - make a link from dir or file to this program']
+           "enable - make a snip executable so it can run",
+           "help - show a list of available functions",
+           "list - list the snips that can be turned on or off",
+           "setup - make a link from dir or file to this program"]
     for p in exp:
         assert p in actual
 
