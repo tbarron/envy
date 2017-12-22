@@ -5,6 +5,7 @@ import pexpect
 import py
 import pytest
 
+
 # -----------------------------------------------------------------------------
 def test_help():
     pytest.debug_func()
@@ -54,6 +55,7 @@ def test_setup_link_noarg(tmpdir):
     with pytest.raises(SystemExit) as err:
         nv.nv_setup([])
     assert exp in str(err)
+
 
 # -----------------------------------------------------------------------------
 def test_setup_link_noarg_f():
