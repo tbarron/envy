@@ -82,7 +82,7 @@ def test_setup_link_noarg_f():
 
 
 # -----------------------------------------------------------------------------
-def test_setup_link_nx(tmpdir):
+def test_setup_link_nx(tmpdir, fx_nvpath):
     """
     non-existent file
     ./nv.py setup nx
@@ -92,10 +92,9 @@ def test_setup_link_nx(tmpdir):
     testfile = tmpdir.join('nosuch')
     if testfile.exists():
         testfile.remove()
-    nvpath = os.path.abspath("./nv.py")
-    nv.setup_link(testfile.strpath, nvpath, False)
+    nv.setup_link(testfile.strpath, fx_nvpath.strpath, False)
     assert testfile.islink()
-    assert nvpath == testfile.readlink()
+    assert fx_nvpath == testfile.readlink()
 
 
 # -----------------------------------------------------------------------------
