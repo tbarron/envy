@@ -7,6 +7,17 @@ import pytest
 
 
 # -----------------------------------------------------------------------------
+def test_flake8():
+    """
+    Style the code
+    """
+    pytest.debug_func()
+    files = glob.glob('*.py')
+    result = pexpect.run("flake8 {}".format(' '.join(files)))
+    assert result == ''
+
+
+# -----------------------------------------------------------------------------
 def test_help():
     pytest.debug_func()
     actual = pexpect.run("./nv.py help")
