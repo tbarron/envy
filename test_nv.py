@@ -111,6 +111,21 @@ def test_setup_link_nx_f(tmpdir, fx_nvpath):
     assert fx_nvpath.strpath == testfile.readlink()
 
 
+# -------------------------------------------------------------------------
+def test_setup_link_xdir(tmpdir, fx_nvpath):
+    """
+    existing directory
+    ./nv.py setup xdir
+    --> ln -s this xdir/nv
+    """
+    pytest.debug_func()
+    tdir = tmpdir.join('_dir')
+    tdir.ensure(dir=True)
+    tlink = tdir.join('nv')
+    result = nv.setup_link(tdir.strpath, fx_nvpath.strpath, False)
+    assert result == ''
+    assert fx_nvpath.strpath == tlink.readlink()
+
 
 # -----------------------------------------------------------------------------
 class TestNV(unittest.TestCase):
@@ -206,26 +221,6 @@ class TestNV(unittest.TestCase):
                          "'%s' != '%s'" %
                          (nvpath, os.readlink(testfile)))
         os.unlink(testfile)
-
-    # -------------------------------------------------------------------------
-    def test_setup_link_xdir(self):
-        """
-        existing directory
-        ./nv.py setup xdir
-        --> ln -s this xdir/nv
-        """
-        stem = funcname()
-        tdir = os.path.join(self.testdir, stem + "_dir")
-        os.makedirs(tdir)
-        tlink = os.path.join(tdir, "nv")
-        if os.path.islink(tlink):
-            os.unlink(tlink)
-
-        result = nv.setup_link(tdir, self.nvpath, False)
-
-        self.assertEqual(self.nvpath, os.readlink(tlink),
-                         "Expected '%s' -> '%s'; got '%s' -> '%s'" %
-                         (tlink, self.nvpath, tlink, os.readlink(tlink)))
 
     # -------------------------------------------------------------------------
     def test_setup_link_xdir_f(self):
