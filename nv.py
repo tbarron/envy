@@ -30,7 +30,8 @@ def main(args=None):
         func(args[2:])
     except AttributeError:
         fatal("nv function '%s' not found" % funcname)
-                       
+
+
 # -----------------------------------------------------------------------------
 def nv_help(args):
     """help - show a list of available functions
@@ -61,7 +62,7 @@ def nv_help(args):
         dlist.sort()
         for line in dlist:
             print("   %s" % line)
-                  
+
 
 # -----------------------------------------------------------------------------
 def nv_activate(args):
@@ -298,15 +299,17 @@ def nv_list(args):
                 status = "OFF"
             print("   %-15s %3s %s" %
                   (bname, status, description(fname)))
-            
-        
+
+
 # -----------------------------------------------------------------------------
 def memoize(f):
     memo = {}
+
     def helper(*args):
         if ''.join(args) not in memo:
             memo[''.join(args)] = f(*args)
         return memo[''.join(args)]
+
     return helper
 
 
@@ -374,7 +377,8 @@ def engage(which, filename=None):
         os.rename(target, newname)
         moved = '{0} has been moved to {1}'.format(target, newname)
         moved = '\n'.join(['{0} has been moved to {1}',
-                           "for anything from {1} that you need to keep, please",
+                           "for anything from {1} that needs to be kept,"
+                           " please",
                            "put it in a script under {2} and enable it"])
         moved = moved.format(target, newname, z['dirname'])
     f = open(target, 'w')
@@ -412,7 +416,7 @@ def disable(which, snip):
     if os.path.exists(snippath):
         os.chmod(snippath, mode(snippath) & 0666)
 
-    
+
 # -----------------------------------------------------------------------------
 def enable(which, snip):
     (dname, tname, sname) = porl(which)
@@ -420,7 +424,7 @@ def enable(which, snip):
     if os.path.exists(snippath):
         os.chmod(snippath, mode(snippath) | 0111)
 
-    
+
 # -----------------------------------------------------------------------------
 def fatal(msg):
     """
@@ -461,6 +465,7 @@ def make_sure(action):
     if ans != 'yes':
         sys.exit(0)
 
+
 # -----------------------------------------------------------------------------
 @memoize
 def home():
@@ -491,7 +496,8 @@ def porl(which):
     elif which == 'l':
         dname = os.path.join(home(), ".nv", "login.d")
         sname = os.path.join(dname, "enable.snippet")
-        for tname in [os.path.join(home(), ".profile"),
+        for tname in [os.path.join(home(), ".zprofile"),
+                      os.path.join(home(), ".profile"),
                       os.path.join(home(), ".bash_profile")]:
             if os.path.exists(tname):
                 break
@@ -595,4 +601,3 @@ def which_dict():
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
     main(sys.argv)
-
