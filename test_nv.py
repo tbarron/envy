@@ -112,8 +112,6 @@ def test_setup_link_nx_f(tmpdir):
     assert nvpath.strpath == testfile.readlink()
 
 
-def funcname():
-    return sys._getframe(1).f_code.co_name
 
 # -----------------------------------------------------------------------------
 class TestNV(unittest.TestCase):
@@ -512,3 +510,10 @@ class TestNV(unittest.TestCase):
                          "Expected '%s' -> '%s', got '%s' -> '%s'" %
                          (testlink, self.nvpath,
                           testlink, os.readlink(testlink)))
+@pytest.fixture
+def fx_nvpath():
+    """
+    Set up nvpath for tests that use it
+    """
+    nvpath = py.path.local('nv.py')
+    return nvpath
